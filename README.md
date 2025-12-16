@@ -23,7 +23,7 @@ The system's primary components include:
 Directory Structure Used in This Example Design:
 
 ``` bash
-|--- a5e065b-mod-devkit-exp-es/
+|--- a5e065b-prem-devkit-exp-es/
   |   |--- src
   |   |   |--- hw
   |   |   |--- sw
