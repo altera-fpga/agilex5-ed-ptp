@@ -49,5 +49,5 @@ git checkout rel-25.3
 
 Follow the below procedure to build the HW and the Software artifacts.
 
-- [Building the hardware](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-mod-devkit-exp-es/src/hw)
-- [Building the software](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-mod-devkit-exp-es/src/sw)
+- [Building the hardware](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-es/src/hw)
+- [Building the software](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-es/src/sw)
