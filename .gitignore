@@ -1,0 +1,5 @@
+a5e065b-prem-devkit-exp-es/src/sw/yocto/*.patch
+a5e065b-prem-devkit-exp-es/src/sw/yocto/*-rootfs/*
+a5e065b-prem-devkit-exp-es/src/sw/yocto/*-images/*
+a5e065b-prem-devkit-exp-es/src/sw/yocto/downloads/*
+a5e065b-prem-devkit-exp-es/src/sw/yocto/sstate_cache/*
