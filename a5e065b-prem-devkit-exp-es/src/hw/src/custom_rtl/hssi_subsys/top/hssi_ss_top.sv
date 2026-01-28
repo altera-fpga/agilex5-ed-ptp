@@ -167,7 +167,7 @@ module hssi_ss_top #(
   // wire  [64-1:0]                       i_rx_avst_preamble    ;
 
 	   logic                      ptp_ts_req;
-	   logic                      ptp_ts_valid; //need to check alekhya
+	   logic                      ptp_ts_valid; 
 	   logic                      ptp_ins_ets;
 		logic [PTP_FP_WIDTH-1:0]   tx_ptp_fp,ptp_ets_fp;
 		logic                      ptp_ins_cf;
@@ -296,9 +296,8 @@ module hssi_ss_top #(
       .i_rxstatus_avst_data             (i_rxstatus_avst_data   ),
       .i_rxstatus_avst_valid            (i_rxstatus_avst_valid  ),
 	  
-	  // commented by alekhya 
     //tx_ptp avalon side
-    .o_av_st_tx_ptp_ts_valid        (ptp_ts_valid), //need to check alekhya
+    .o_av_st_tx_ptp_ts_valid        (ptp_ts_valid), 
     .o_av_st_tx_ptp_ts_req          (ptp_ts_req),
     .o_av_st_tx_ptp_ins_ets         (ptp_ins_ets),
     .o_av_st_tx_ptp_fp              (tx_ptp_fp),

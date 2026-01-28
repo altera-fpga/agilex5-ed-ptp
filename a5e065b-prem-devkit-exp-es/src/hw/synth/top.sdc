@@ -1,3 +1,4 @@
+
 # ######################################################################## 
 # Copyright (C) 2025 Altera Corporation.
 # SPDX-License-Identifier: MIT
@@ -34,17 +35,6 @@ set_false_path -from * -to [get_ports {o_ptp_pps}]
 set_false_path -from * -to [get_ports {o_clk_rec_div_66}]
 set_false_path -from * -to [get_ports {o_clk_rec_div_66(n)}]
 
-#false paths for async reset signals
-set_false_path -from [get_ports {fpga_reset_n}]
-set_false_path -through [get_pins sync_h2f_reset|mka_rst_meta0|clrn]
-set_false_path -through [get_pins sync_h2f_reset|mka_rst_meta1|clrn]
-set_false_path -through [get_pins sync_h2f_reset|rst_pipe[0]|clrn]
- 
-set_false_path -through [get_pins sys_rst_inst|altera_reset_synchronizer_int_chain[1]|clrn]
-set_false_path -through [get_pins sys_rst_inst|altera_reset_synchronizer_int_chain[0]|clrn]  
-set_false_path -through [get_pins sys_rst_inst|altera_reset_synchronizer_int_chain_out|clrn]
-
-set_false_path -from [get_keepers -no_duplicates {gen_mulit_inst[*].hssi_ss_top|u0|intel_eth_gts_0|hip_inst|n_channel_superset_wrapper_inst|n_channel_superset|hal_top_wrapper_inst|hal_top_ip|one_lane_inst_0|one_lane_hal_top_p0|gen_non_usb_mode.pldif_hal_top_inst|pldif_hal_top|pldif_hal_coreip_inst|gen_sm_ch4_pldif_inst.sm_block.ch4_pldif_inst|x_std_sm_hssi_pld_chnl_dp_0~pldif_reset_reg}] -to [get_keepers -no_duplicates {o_tx_pll_locked_d[*]}]
 set_false_path -from [get_keepers -no_duplicates {soc_inst|iopll_0|iopll|tennm_ph2_iopll~pll_ctrl_reg}] -to [get_keepers -no_duplicates {sync_iopll_lock_161_*|dreg[*]}]
 set_false_path -from [get_keepers -no_duplicates {gen_mulit_inst[*].hssi_ss_top|u0|intel_eth_gts_0|hip_inst|n_channel_superset_wrapper_inst|n_channel_superset|hal_top_wrapper_inst|hal_top_ip|one_lane_inst_0|one_lane_hal_top_p0|gen_non_usb_mode.pldif_hal_top_inst|pldif_hal_top|pldif_hal_coreip_inst|gen_sm_ch4_pldif_inst.sm_block.ch4_pldif_inst|x_std_sm_hssi_pld_chnl_dp_0~pldif_reset_reg}] -to [get_keepers -no_duplicates {sts_tx_pll_locked[*].tx_pll_locked|dreg[*]}]
 set_false_path -from [get_keepers -no_duplicates {gen_mulit_inst[*].hssi_ss_top|u0|intel_eth_gts_0|sip_inst|o_rx_pcs_ready}] -to [get_keepers -no_duplicates {sts_rx_pcs_ready[*].rx_pcs_ready|dreg[*]}]
@@ -105,7 +95,6 @@ set_false_path -from [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_
 set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|eth_reset_sync[*].eth_user_rx_rstn_sync_100M|dreg[*]}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rx_dma_fifo_0|rx_dma_fifo_0|cdc_packet_fifo|translate_read_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[*]}]
 set_false_path -from [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|tx_dma_fifo_0|tx_dma_fifo_0|cdc_packet_fifo|translate_write_pointer|toggle_in|toggled_signal*}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|tx_dma_fifo_0|tx_dma_fifo_0|cdc_packet_fifo|translate_write_pointer|toggle_in|inst_cdc_sync|in_data_meta[*]}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_regs_inst|mgmt_ctrl_reg.op_type[*]}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|sync1_mgmt_req_type[*]}]
-set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|ms_tcam_reset_sequencer_inst|int_cold_rst_n}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|int_cold_rst_n_d}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|entry_vld}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|sync_entry_vld}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_regs_inst|mgmt_ctrl_reg.op_type[*]}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|sync1_mgmt_req_type[*]}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|ms_tcam_reset_sequencer_inst|int_warm_rst_n*}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|int_warm_rst_n_d1}]
@@ -121,10 +110,7 @@ set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|err_mgmt_req_valid}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|sync1_err_mgmt_req_valid}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|init_done}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|sync1_init_done}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|mgmt_resp_success}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|sync1_mgmt_resp_success}]
-set_false_path -from [get_keepers -no_duplicates {o_tx_pll_locked_pktsw[*]}] -to [get_keepers -no_duplicates {o_tx_pll_locked_pktsw_100M_d}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|tg_sync_resp_valid|reg_in*}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|tg_sync_resp_valid|reg_out[*]}]
-set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|st_rst_req_disable_ingress}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|lite_rst_req_disable_ingress_d}]
-set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|ss_app_rst_rdy}] -to [get_keepers -no_duplicates {ss_app_rst_rdy_d[*]}]
 set_false_path -from [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rst_controller|alt_rst_sync_uq1|altera_reset_synchronizer_int_chain_out}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rx_dma_fifo_0_ch2|rx_dma_fifo_0|ts_fifo_rst}]
 set_false_path -from [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rst_controller|alt_rst_sync_uq1|altera_reset_synchronizer_int_chain_out}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rx_dma_fifo_0_ch2|rx_dma_fifo_0|cdc_packet_fifo|translate_read_pointer|state.get_data}]
 set_false_path -from [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rst_controller|alt_rst_sync_uq1|altera_reset_synchronizer_int_chain_out}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rx_dma_fifo_0_ch2|rx_dma_fifo_0|cdc_packet_fifo|read_enable*}]
@@ -151,5 +137,13 @@ set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|packet_sw
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|ms_tcam_reset_sequencer_inst|int_cold_rst_n}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|mgmt_req|dcfifo_component|auto_generated|*aclr*}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|packet_switch_top|gen_rst_sync[*].*x_rst_sync|syn_rst}] -to [get_keepers -no_duplicates {packet_switch_subsys|packet_switch_top|packet_switch_axi_lt_avmm_inst|gen_axi_lt_to_avmm[*].axi_lt_to_avmm_*x|bresp_cdc_fifo|auto_generated|rdaclr*}]
 set_false_path -from [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|ms_tcam_reset_manager_inst|int_warm_rst_n}] -to [get_keepers -no_duplicates {packet_switch_subsys|gen_tcam_inst[*].inst_tcam|mem_ss_cam_0|tcam_inst|mgmt_resp|dcfifo_component|auto_generated|rdaclr*}]
-
 set_false_path -from [get_keepers -no_duplicates {master_tod_rst_sync|resync_chains[0].synchronizer_nocut|dreg_R}] -to [get_keepers -no_duplicates {master_tod|MTOD_GEN_PPS_ADV_MODE.master_tod|eth_1588_tod_0|genblk3.u_pulse_per_second_w|GTS_ADV_MODE_PPS.u_pulse_per_second_gts_adv|u_rst_sync_sampling_clk|nocut_sync[0].std_sync_no_cut|dreg[*]}]; 
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_rx_rst_n_161_*d[*]}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rx_dma_fifo_0*|rx_dma_fifo_0|cdc_packet_fifo|translate_*_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[*]}]
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_rx_rst_n_100_*d[*]}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|rx_dma_fifo_0*|rx_dma_fifo_0|cdc_packet_fifo|translate_*_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[*]}]
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_tx_rst_n_161_*d[*]*}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|tx_dma_fifo_0*|tx_dma_fifo_0|cdc_packet_fifo|translate_*_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[*]}]
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_tx_rst_n_100_*d[*]*}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|tx_dma_fifo_0*|tx_dma_fifo_0|cdc_packet_fifo|translate_*_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[*]}]
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_tx_rst_n_100_*d[*]*}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|ts_chs_compl_0|ts_chs_compl_0|ts_ch_resp[*].ts_fifo|dcfifo_component|auto_generated|wraclr|*}]
+set_false_path -from [get_keepers -no_duplicates {rd1|cntr[*]}] -to [get_keepers -no_duplicates {sync_ninit_done|*}]
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_rx_rst_n_161_sig[*]}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|*x_dma_fifo_0*|*x_dma_fifo_0|cdc_packet_fifo|translate_*_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[0]}]
+set_false_path -from [get_keepers -no_duplicates {inst_srd_rst_ctrl|o_user_tx_rst_n_161_sig[*]}] -to [get_keepers -no_duplicates {soc_inst|subsys_msgdma_p*_eth_ch*|tx_dma_fifo_0|tx_dma_fifo_0|cdc_packet_fifo|translate_read_pointer|toggle_in|inst_cdc_sync_for_rst|in_data_meta[0]}]
+

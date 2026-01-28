@@ -40,6 +40,18 @@ module srd_rst_ctrl #(
 	 logic  [NUM_CHANNELS-1:0]   sync_i_sys_tx_rst_n;
 	 logic  [NUM_CHANNELS-1:0]   sync_i_sys_rx_rst_n;
 
+    logic  [NUM_CHANNELS-1:0]   o_user_tx_rst_n_161_int, o_user_tx_rst_n_161_sig;
+    logic  [NUM_CHANNELS-1:0]   o_user_tx_rst_n_161_d;
+    logic  [NUM_CHANNELS-1:0]   o_user_tx_rst_n_161_2d;
+    logic  [NUM_CHANNELS-1:0]   o_user_rx_rst_n_161_int, o_user_rx_rst_n_161_sig;
+    logic  [NUM_CHANNELS-1:0]   o_user_rx_rst_n_161_d;
+    logic  [NUM_CHANNELS-1:0]   o_user_rx_rst_n_161_2d;
+    logic  [NUM_CHANNELS-1:0]   o_user_tx_rst_n_100_int;
+    logic  [NUM_CHANNELS-1:0]   o_user_tx_rst_n_100_d;
+    logic  [NUM_CHANNELS-1:0]   o_user_tx_rst_n_100_2d;
+    logic  [NUM_CHANNELS-1:0]   o_user_rx_rst_n_100_int;
+    logic  [NUM_CHANNELS-1:0]   o_user_rx_rst_n_100_d;
+    logic  [NUM_CHANNELS-1:0]   o_user_rx_rst_n_100_2d;
 
     generate for (genvar i=0;i<NUM_CHANNELS;i++) begin : eth_reset_sync
     
@@ -53,7 +65,8 @@ module srd_rst_ctrl #(
     eth_f_altera_std_synchronizer_nocut eth_user_rstn_sync (
      .clk                       ( i_clk_csr[i]),
      .reset_n                   ( 1'b1 ),
-     .din                       (i_sys_rst_n[i] ),
+     //.din                       (i_sys_rst_n[i] ),
+     .din                       (pwrgood_rst_n ),
      .dout                      (sync_i_sys_rst_n[i])
     );
 
@@ -85,7 +98,8 @@ module srd_rst_ctrl #(
     srd_rst_seq eth_tx_rst_seq (
     .i_clk                     ( i_clk_csr[i]),
     .i_pwrgood_rst_n           ( pwrgood_rst_n),
-    .i_rst_n                   ( sync_i_sys_tx_rst_n[i]),
+    //.i_rst_n                   ( sync_i_sys_tx_rst_n[i]),
+    .i_rst_n                   ( sync_i_sys_rst_n[i]),
     .o_rst_n                   ( o_eth_tx_rst_n[i] ),
     .i_rst_ack_n               ( sync_tx_ack_n[i]),
     .o_rst_done                ( )
@@ -109,44 +123,77 @@ module srd_rst_ctrl #(
     srd_rst_seq eth_rx_rst_seq (
     .i_clk                     ( i_clk_csr[i]),
     .i_pwrgood_rst_n           ( pwrgood_rst_n ),
-    .i_rst_n                   ( sync_i_sys_rx_rst_n[i]),
+    //.i_rst_n                   ( sync_i_sys_rx_rst_n[i]),
+    .i_rst_n                   ( sync_i_sys_rst_n[i]),
     .o_rst_n                   ( o_eth_rx_rst_n[i] ),
     .i_rst_ack_n               ( sync_rx_ack_n[i]),
     .o_rst_done                ( )
 	 );
 	
-	 //assign o_user_tx_rst_n_100 [i] = sync_i_sys_tx_rst_n[i];
-	 //assign o_user_rx_rst_n_100 [i] = sync_i_sys_rx_rst_n[i];	
 	  // Reset synchronizer with 161Mhz
  	eth_f_altera_std_synchronizer_nocut eth_user_tx_rstn_sync_161M (
      .clk                       ( i_clk_pll_161m[i]),
      .reset_n                   ( 1'b1 ),
      .din                       (i_sys_tx_rst_n[i] ),
-     .dout                      (o_user_tx_rst_n_161[i])
+     .dout                      (o_user_tx_rst_n_161_int[i])
     );
-	 
+
+   always_ff @(posedge i_clk_pll_161m[i]) 
+	begin
+       o_user_tx_rst_n_161_d[i]  <= o_user_tx_rst_n_161_int[i];
+       o_user_tx_rst_n_161_2d[i] <= o_user_tx_rst_n_161_d[i];
+		 o_user_tx_rst_n_161_sig[i] <= o_user_tx_rst_n_161_int[i] & o_user_tx_rst_n_161_d[i] & o_user_tx_rst_n_161_2d[i];
+   end
+	assign o_user_tx_rst_n_161[i] =  o_user_tx_rst_n_161_sig[i] ;
+	
 	 eth_f_altera_std_synchronizer_nocut eth_user_rx_rstn_sync_161M (
      .clk                       ( i_clk_pll_161m[i]),
      .reset_n                   ( 1'b1 ),
      .din                       (i_sys_rx_rst_n[i] ),
-     .dout                      (o_user_rx_rst_n_161[i])
+     .dout                      (o_user_rx_rst_n_161_int[i])
     );
-	 
+
+   always_ff @(posedge i_clk_pll_161m[i]) 
+	begin
+       o_user_rx_rst_n_161_d[i]  <= o_user_rx_rst_n_161_int[i];
+       o_user_rx_rst_n_161_2d[i] <= o_user_rx_rst_n_161_d[i];
+		 o_user_rx_rst_n_161_sig[i] <= o_user_rx_rst_n_161_int[i] & o_user_rx_rst_n_161_d[i] & o_user_rx_rst_n_161_2d[i];
+   end
+	assign o_user_rx_rst_n_161[i] = o_user_rx_rst_n_161_sig[i];
+	
 	 	  // Reset synchronizer with 161Mhz
  	eth_f_altera_std_synchronizer_nocut eth_user_tx_rstn_sync_100M (
      .clk                       ( i_clk_100),
      .reset_n                   ( 1'b1 ),
-     .din                       (i_sys_tx_rst_n[i] ),
-     .dout                      (o_user_tx_rst_n_100[i])
+     //.din                       (i_sys_tx_rst_n[i] ),
+     .din                       (o_user_tx_rst_n_161_sig[i] ),
+     .dout                      (o_user_tx_rst_n_100_int[i])
     );
-	 
+
+   always_ff @(posedge i_clk_100) 
+	begin
+       o_user_tx_rst_n_100_d[i]  <= o_user_tx_rst_n_100_int[i];
+       o_user_tx_rst_n_100_2d[i] <= o_user_tx_rst_n_100_d[i];
+   end
+	assign o_user_tx_rst_n_100[i] = o_user_tx_rst_n_100_int[i] & o_user_tx_rst_n_100_d[i] & o_user_tx_rst_n_100_2d[i];
+
+	
 	 eth_f_altera_std_synchronizer_nocut eth_user_rx_rstn_sync_100M (
      .clk                       ( i_clk_100),
      .reset_n                   ( 1'b1 ),
-     .din                       (i_sys_rx_rst_n[i] ),
-     .dout                      (o_user_rx_rst_n_100[i])
+     //.din                       (i_sys_rx_rst_n[i] ),
+     .din                       (o_user_rx_rst_n_161_sig[i] ),
+     .dout                      (o_user_rx_rst_n_100_int[i])
     );
-    end endgenerate
+
+   always_ff @(posedge i_clk_100) 
+	begin
+       o_user_rx_rst_n_100_d[i]  <= o_user_rx_rst_n_100_int[i];
+       o_user_rx_rst_n_100_2d[i] <= o_user_rx_rst_n_100_d[i];
+   end
+	assign o_user_rx_rst_n_100[i] = o_user_rx_rst_n_100_int[i] & o_user_rx_rst_n_100_d[i] & o_user_rx_rst_n_100_2d[i];
+
+	end endgenerate
 
   assign o_eth_csr_rst_n = o_eth_rx_rst_n; 
  

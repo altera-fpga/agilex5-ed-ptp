@@ -1,14 +1,8 @@
-//****************************************************************************
-//
-// SPDX-License-Identifier: MIT-0
-// Copyright(c) 2019-2021 Intel Corporation.
-//
-//****************************************************************************
-// This is a generated system top level RTL file. 
+//# ######################################################################## 
+//# Copyright (C) 2025 Altera Corporation.
+//# SPDX-License-Identifier: MIT
+//# ######################################################################## 
 
-// Derive channel and width from hps_emif_topology
-
-// Find and print each number individually
 
 import sm_ptp_pkg::*;
 
@@ -37,8 +31,7 @@ module top #(
     ,parameter A0_PAGE_END_ADDR= 128
     ,parameter NUM_PG_SUPPORT  = 4
 	)(
-//Additional refclk_bti to preserve Etile XCVR
-// Clock and Reset
+// Clock 
   input    wire          fpga_clk_100                     ,
 
 //HPS
@@ -108,7 +101,6 @@ output wire [NUM_CHANNELS*1-1:0]   o_tx_serial_data     ,
 output wire [NUM_CHANNELS*1-1:0]   o_tx_serial_data_n   ,
 														
  input wire  [NUM_CHANNELS-1:0]    i_clk_ref_p          ,
-//output wire  [NUM_CHANNELS*1-1:0]  o_clk_rec_div_66   ,
 output wire                        o_clk_rec_div_66     ,
 //output wire                        o_clk_rec_div_66_n     ,
 														
@@ -129,9 +121,9 @@ output wire                o_ptp_pps
 	 wire  [NUM_CHANNELS*1-1:0]  o_clk_tx_div                  ;
     wire                        system_clk_100                ;
     wire                        ninit_done                    ;
-    wire                        fpga_reset_n_debounced_wire   ;
-    reg                         fpga_reset_n_debounced        ;
     wire                        system_reset                  ;
+    wire                        system_reset_n                  ;
+    wire                        system_reset_csr              ;
     wire  [NUM_CHANNELS-1:0]    system_reset_161              ;
     wire 			              qsfp_i2c_scl_in               ;
     wire 			              qsfp_i2c_sda_in               ;
@@ -192,9 +184,7 @@ output wire                o_ptp_pps
     wire                        iopll_locked_export           ;
     wire                        iopll_locked_export_100M      ;
     wire                        iopll_locked_export_125M      ;
-    wire                        h2f_reset                     ;
     wire                        fpga_reset_n_csr              ;
-    wire                        h2f_reset_csr                 ;
     wire                        ninit_done_csr                ;
     wire                        clk_bdg_125_clk               ;
     wire                        clk_bdg_100_clk               ;
@@ -314,12 +304,8 @@ output wire                o_ptp_pps
     logic [DMA_CHANNELS-1:0][DMA_DATA_WIDTH/8-1:0]           dma_axi_st_rx_tkeep_o               ;
     logic [DMA_CHANNELS-1:0]                                 dma_axi_st_rx_tlast_o               ;
                
-    logic [NUM_CHANNELS-1:0]                                 tx_init_done, rx_init_done;
     wire  [NUM_CHANNELS-1:0]                                 ss_app_cold_rst_ack_n, ss_app_warm_rst_ack_n, ss_app_cold_rst_ack_n_sync, ss_app_warm_rst_ack_n_sync;
-    reg   [NUM_CHANNELS-1:0]                                 tcam_cold_rst_n, tcam_warm_rst_n, o_tx_pll_locked_pktsw;
-    wire  [NUM_CHANNELS-1:0]                                 ss_app_rst_rdy, app_ss_st_areset_n;
-    reg   [NUM_CHANNELS-1:0]                                 ss_app_rst_rdy_161m_d, ss_app_rst_rdy_161m_2d, ss_app_rst_rdy_161m_3d;
-    reg   [NUM_CHANNELS-1:0]                                 app_ss_rst_req, ss_app_rst_rdy_d, ss_app_rst_rdy_2d, ss_app_rst_rdy_3d, ss_app_rst_rdy_edge_det;
+    reg   [NUM_CHANNELS-1:0]                                 tcam_cold_rst_n, tcam_warm_rst_n;
              
     wire  [NUM_CHANNELS-1:0]                                 hssi_ptp_tx_egrts_tvalid ;      
     wire  [NUM_CHANNELS-1:0] [TXEGR_TS_DW-1:0]               hssi_ptp_tx_egrts_tdata;                          
@@ -408,14 +394,27 @@ output wire                o_ptp_pps
     assign qsfpa_modeseln       = ~qsfpa_modesel;
     assign zl_i2c_scl           = (zl_i2c_scl_oe == 1'b1) ? 1'b0 : 1'bz;
     assign zl_i2c_sda           = (zl_i2c_sda_oe == 1'b1) ? 1'b0 : 1'bz;
-	 assign combined_reset_n     = fpga_reset_n & ~h2f_reset & ~ninit_done;
-    assign combined_reset_n_csr = fpga_reset_n_csr & ~h2f_reset_csr & ~ninit_done_csr;
     assign system_clk_100       = fpga_clk_100;
  
     assign i_reconfig_clk[0]    = clk_bdg_125_clk;
     assign i_reconfig_clk[1]    = clk_bdg_125_clk;
 
+`ifdef SIM_MODE
+   assign system_reset_n = ~ninit_done;
+`else
+   defparam rd1.CNTR_BITS = 28;
+   alt_reset_delay rd1 (.clk(fpga_clk_100), .ready_in(~ninit_done), .ready_out(system_reset_n) );
+`endif
+  assign system_reset = (~system_reset_n);
 
+  ipm_cdc_async_rst #(
+      .NUM_STAGES                 (3)
+   ) sync_ninit_done (
+      .clk                        (clk_bdg_125_clk),        
+      .arst_in                    (system_reset),    
+      .srst_out                   (system_reset_csr) 
+   );
+ 
 	cdr_clk_gpio u0 (
 		.ck        (o_clk_rec_div_66_int[0]),        
 		.din       (2'b10),              
@@ -424,17 +423,6 @@ output wire                o_ptp_pps
 		.pad_out_b ()  
 	);
 	
-  altera_reset_synchronizer #(
-      .ASYNC_RESET (1),
-      .DEPTH       (2)
-  ) sys_rst_inst (
-      .reset_in  (~combined_reset_n),
-      .clk       (system_clk_100),
-      .reset_out (system_reset)
-  );
-  
-  
-  
 
   axis_if #(.DATA_W(TDATA_WIDTH),.TID(TID)) axis_h2d_if [DMA_CHANNELS-1:0]();
   axis_if #(.DATA_W(TDATA_WIDTH),.TID(TID)) axis_d2h_if [DMA_CHANNELS-1:0]();
@@ -445,12 +433,12 @@ output wire                o_ptp_pps
   logic [NUM_CHANNELS-1:0] [3:0] trafficgen_system_status;
   wire [1:0] o_tx_lanes_stable_sync, o_tx_pll_locked_sync, o_rx_pcs_ready_sync;
 
-  assign trafficgen_system_status[0] = {o_rx_pcs_ready_sync[0] ,o_tx_pll_locked_sync[0], o_tx_lanes_stable_sync[0] , combined_reset_n_csr};
+  assign trafficgen_system_status[0] = {o_rx_pcs_ready_sync[0] ,o_tx_pll_locked_sync[0], o_tx_lanes_stable_sync[0] , system_reset_csr};
 
 // **************************************************************************//
 //                 synchronizers                                             //
 // **************************************************************************//  
-  for (genvar i=0; i < 1; i++) begin : sts_tx_lanes_stable
+  for (genvar i=0; i < NUM_CHANNELS; i++) begin : sts_tx_lanes_stable
     eth_f_altera_std_synchronizer_nocut tx_lanes_stable (
         .clk        (clk_bdg_125_clk),
         .reset_n    (o_tx_lanes_stable[i]),
@@ -459,7 +447,7 @@ output wire                o_ptp_pps
     );
    end
 
-  for (genvar i=0; i < 1; i++) begin : sts_tx_pll_locked
+  for (genvar i=0; i < NUM_CHANNELS; i++) begin : sts_tx_pll_locked
     eth_f_altera_std_synchronizer_nocut tx_pll_locked (
         .clk        (clk_bdg_125_clk),
         .reset_n    (o_tx_pll_locked[i]),
@@ -468,7 +456,7 @@ output wire                o_ptp_pps
     );
    end
     
-  for (genvar i=0; i < 1; i++) begin : sts_rx_pcs_ready
+  for (genvar i=0; i < NUM_CHANNELS; i++) begin : sts_rx_pcs_ready
     eth_f_altera_std_synchronizer_nocut rx_pcs_ready (
         .clk        (clk_bdg_125_clk),
         .reset_n    (o_rx_pcs_ready[i]),
@@ -504,33 +492,6 @@ output wire                o_ptp_pps
       .dout                      (iopll_locked_export_161[1])
     );
  
- // Syncing all resets to csr_clk
-    ipm_cdc_async_rst #(
-       .RST_TYPE                   ("ACTIVE_LOW"),
-       .NUM_STAGES                 (3)
-    ) sync_fpga_reset_n (
-       .clk                        (clk_bdg_125_clk),        
-       .arst_in                    (fpga_reset_n),    
-       .srst_out                   (fpga_reset_n_csr) 
-    );
-   
-    ipm_cdc_async_rst #(
-       .NUM_STAGES                 (3)
-    ) sync_h2f_reset (
-       .clk                        (clk_bdg_125_clk),        
-       .arst_in                    (h2f_reset),    
-       .srst_out                   (h2f_reset_csr) 
-    );
-      
-    ipm_cdc_async_rst #(
-       .NUM_STAGES                 (3)
-    ) sync_ninit_done (
-       .clk                        (clk_bdg_125_clk),        
-       .arst_in                    (ninit_done),    
-       .srst_out                   (ninit_done_csr) 
-    );
-
-
 for(genvar i = 0; i < DMA_CHANNELS; i++) begin : tx_ts_assign
     always_comb begin
        tx_ts_valid[i] = dma_axi_st_txegrts_tvalid_o[i];
@@ -729,8 +690,9 @@ qsys_top soc_inst (
 .hps_io_gpio27                             (hps_gpio1_io3),
 .hps_io_gpio28                             (hps_gpio1_io4),
 .hps_io_hps_osc_clk                        (hps_osc_clk),
-.h2f_reset_reset                           (h2f_reset),
-.reset_reset_n                             (~system_reset),
+//.h2f_reset_reset                           (h2f_reset),
+.h2f_reset_reset                           (),
+.reset_reset_n                             (system_reset_n),
  //##########################     PORT 0     ##########################################
   // --------------   Tx mSGDMA Channel 0 to HSSI port 0----------------------//
 
@@ -743,9 +705,7 @@ qsys_top soc_inst (
 
   .subsys_msgdma_ch0_eth_p0_avst_tx_ptp_i_av_st_tx_skip_crc           ('d0),
   .subsys_msgdma_ch0_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_ts_valid       ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_ts_req         ('d0),
   .subsys_msgdma_ch0_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_ins_ets        ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_fp             ('d0),
   .subsys_msgdma_ch0_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_ins_cf         ('d0),
   .subsys_msgdma_ch0_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_tx_its         ('d0),
   .subsys_msgdma_ch0_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_asym_p2p_idx   ('d0),
@@ -814,9 +774,7 @@ qsys_top soc_inst (
 
   .subsys_msgdma_ch1_eth_p0_avst_tx_ptp_i_av_st_tx_skip_crc           ('d0),
   .subsys_msgdma_ch1_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_ts_valid       ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_ts_req         ('d0),
   .subsys_msgdma_ch1_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_ins_ets        ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_fp             ('d0),
   .subsys_msgdma_ch1_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_ins_cf         ('d0),
   .subsys_msgdma_ch1_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_tx_its         ('d0),
   .subsys_msgdma_ch1_eth_p0_avst_tx_ptp_i_av_st_tx_ptp_asym_p2p_idx   ('d0),
@@ -875,7 +833,7 @@ qsys_top soc_inst (
    .subsys_msgdma_ch1_eth_p0_hssi_ets_ts_adapter_0_egrs_ts_hssi_tdata ({tx_ts_fp[1],tx_ts_data[1]}),
 
   .qhip_port_0_m0_waitrequest            (o_reconfig_eth_waitrequest[0]   ),
-  .qhip_port_0_m0_readdata               (o_reconfig_eth_readdata[0]      ), //input
+  .qhip_port_0_m0_readdata               (o_reconfig_eth_readdata[0]      ), 
   .qhip_port_0_m0_readdatavalid          (o_reconfig_eth_readdata_valid[0]),
   .qhip_port_0_m0_burstcount             (),
   .qhip_port_0_m0_writedata              (i_reconfig_eth_writedata[0]      ),
@@ -943,9 +901,7 @@ qsys_top soc_inst (
 
   .subsys_msgdma_ch0_eth_p1_avst_tx_ptp_i_av_st_tx_skip_crc           ('d0),
   .subsys_msgdma_ch0_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_ts_valid       ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_ts_req         ('d0),
   .subsys_msgdma_ch0_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_ins_ets        ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_fp             ('d0),
   .subsys_msgdma_ch0_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_ins_cf         ('d0),
   .subsys_msgdma_ch0_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_tx_its         ('d0),
   .subsys_msgdma_ch0_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_asym_p2p_idx   ('d0),
@@ -1014,9 +970,7 @@ qsys_top soc_inst (
 
   .subsys_msgdma_ch1_eth_p1_avst_tx_ptp_i_av_st_tx_skip_crc           ('d0),
   .subsys_msgdma_ch1_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_ts_valid       ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_ts_req         ('d0),
   .subsys_msgdma_ch1_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_ins_ets        ('d0),
-  //.avst_tx_ptp_i_av_st_tx_ptp_fp             ('d0),
   .subsys_msgdma_ch1_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_ins_cf         ('d0),
   .subsys_msgdma_ch1_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_tx_its         ('d0),
   .subsys_msgdma_ch1_eth_p1_avst_tx_ptp_i_av_st_tx_ptp_asym_p2p_idx   ('d0),
@@ -1183,26 +1137,18 @@ intel_eth_gts_ptp_xcvr_resync_std #(
 ) master_tod_rst_sync (
     .clk                (i_clk_master_tod),
     .reset              (1'b0),
-    .d                  (~system_reset),
+    .d                  (system_reset_n),
     .q                  (ptp_master_tod_rst_n)
 );
 
 //---------------------------------------------------------------
 // TOD Synchronizer's sampling clock (derived from master TOD clock)
-//intel_eth_gts_ptp_todsync_samp_pll todsync_sampl_pll (
-//    .refclk     (clk_bdg_125_clk),//i_clk_master_tod),
-//    .rst        (~ptp_master_tod_rst_n),
-//    .outclk_0   (clk_todsync_sample), //126.98 Mhz
-//    .outclk_1   (clk_ptp_sample),    // 114.285714 MHz
-//    .locked     (clk_todsync_sample_locked)
-//);
 sync_tod_iopll todsync_sampl_pll (
-		.refclk   (i_clk_master_tod),   //   input,  width = 1,  refclk.clk
-		.locked   (clk_todsync_sample_locked),   //  output,  width = 1,  locked.export
-		.rst      (~ptp_master_tod_rst_n),      //   input,  width = 1,   reset.reset
-		.outclk_0 (clk_todsync_sample) //106.66Mhz(tod sync & advance pps_sampling clk) //  output,  width = 1, outclk0.clk
+		.refclk   (i_clk_master_tod),    
+		.locked   (clk_todsync_sample_locked),    
+		.rst      (~ptp_master_tod_rst_n),      
+		.outclk_0 (clk_todsync_sample) //106.66Mhz(tod sync & advance pps_sampling clk) 
 	);
-
 
 //---------------------------------------------------------------
 // Master Time-of-Day
@@ -1443,7 +1389,7 @@ generate for(genvar i=0;i<NUM_CHANNELS;i++) begin : gen_mulit_inst
     .WORDS                                 (WORDS),
     .EMPTY_WIDTH                           (EMPTY_WIDTH)
   ) packet_client_axi_adaptor_top_0(
-    .i_arst                                (eth_user_tx_rst_n[i]), 
+    .i_arst                                (eth_user_rx_rst_n[i]), // active low reset
     .i_clk_tx                              (o_clk_pll_161m[i] ),
     .i_clk_rx                              (o_clk_pll_161m[i] ),
     
@@ -1496,7 +1442,8 @@ generate for(genvar i=0;i<NUM_CHANNELS;i++) begin : gen_mulit_inst
     ,.WORDS            (WORDS            ) 
     ,.EMPTY_WIDTH      (EMPTY_WIDTH      ) 
     ) i_eth_f_packet_client_top (
-    .i_arst                                (!eth_user_tx_rst_n[i]) , 
+    .i_arst_tx                                (!eth_user_tx_rst_n[i]) , 
+    .i_arst_rx                                (!eth_user_rx_rst_n[i]) , 
     .i_clk_tx                              (o_clk_pll_161m   [i] ),
     .i_clk_rx                              (o_clk_pll_161m   [i] ),
     .i_clk_status                          (clk_bdg_125_clk),
@@ -1600,7 +1547,6 @@ srd_rst_ctrl #(
   .port0_rx_fifo_depth_i  ()
 );
 
-//generate for(genvar i=0;i<NUM_PORTS;i++) begin : gen_rst_sync_inst
 
 // ################################################################### // 
 //RES-50004 - Multiple Asynchronous Resets within Reset Synchronizer Chain	
@@ -1608,7 +1554,7 @@ srd_rst_ctrl #(
 // so removing the negedge iopll_locked_export_125M, we should during synchronous reset 
 // ################################################################### // 
 // ********************************************************************* //
-//                  PTP bridge reset sequence
+//                  Packet Switch reset sequence
 // ********************************************************************* //  
 
 // cold boot reset logic
@@ -1619,14 +1565,12 @@ srd_rst_ctrl #(
     .dout       (ss_app_cold_rst_ack_n_sync[0])
   );
   
-always @(posedge clk_bdg_125_clk )
- if(~iopll_locked_export_125M)
-    tcam_cold_rst_n[0] <= 1'b1;
-  else if (ss_app_rst_rdy_edge_det[0])
-     tcam_cold_rst_n[0] <= 1'b0;
+always @(posedge clk_bdg_125_clk or negedge iopll_locked_export_125M) 
+  if(~iopll_locked_export_125M)
+    tcam_cold_rst_n[0] <= 1'b0;
   else if(~ss_app_cold_rst_ack_n_sync[0])
     tcam_cold_rst_n[0] <= 1'b1;
-
+	 
 // warm boot reset logic
   eth_f_altera_std_synchronizer_nocut warm_boot_rstack_tcam_inst_1 (
     .clk        (clk_bdg_125_clk),
@@ -1635,79 +1579,16 @@ always @(posedge clk_bdg_125_clk )
     .dout       (ss_app_warm_rst_ack_n_sync[0])
   );
 
-always @(posedge clk_bdg_125_clk )
-  if (~iopll_locked_export_125M)
-    tcam_warm_rst_n[0] <= 1'b1;
-  else if (ss_app_rst_rdy_edge_det[0])
-     tcam_warm_rst_n[0] <= 1'b0;
+always @(posedge clk_bdg_125_clk or negedge iopll_locked_export_125M) 
+  if(~iopll_locked_export_125M)
+    tcam_warm_rst_n[0] <= 1'b0;
   else if(~ss_app_warm_rst_ack_n_sync[0])
     tcam_warm_rst_n[0] <= 1'b1;
 
-always @(posedge o_clk_pll_161m[0] or negedge iopll_locked_export_161[0])
-  if(~iopll_locked_export_161[0])
-    app_ss_rst_req[0] <= 1'b1;
-  else if(ss_app_rst_rdy[0])
-    app_ss_rst_req[0] <= 1'b0;
-
-always @(posedge clk_bdg_125_clk or negedge iopll_locked_export_125M)
-  if(~iopll_locked_export_125M) begin
-      ss_app_rst_rdy_d <= 2'b11;
-      ss_app_rst_rdy_2d <= 2'b11;
-      ss_app_rst_rdy_3d <= 2'b11;
-     end
-  else
-    begin
-      ss_app_rst_rdy_d <= ss_app_rst_rdy;
-      ss_app_rst_rdy_2d <= ss_app_rst_rdy_d;
-      ss_app_rst_rdy_3d <= ss_app_rst_rdy_2d;
-     end    
-     
-assign ss_app_rst_rdy_edge_det[0] = ss_app_rst_rdy_3d[0] & (!ss_app_rst_rdy_2d[0]);
-
-reg [1:0]	o_tx_pll_locked_d, o_tx_pll_locked_2d, o_tx_pll_locked_3d ;
-reg o_tx_pll_locked_pktsw_100M_d, o_tx_pll_locked_pktsw_100M_2d;
-
-always @(posedge o_clk_pll_161m[0] or negedge iopll_locked_export_161[0])
-  if(~iopll_locked_export_161[0]) begin
-      o_tx_pll_locked_pktsw[0]    <= 1'b1;
-      ss_app_rst_rdy_161m_d[0]   <= 1'b0;
-      ss_app_rst_rdy_161m_2d[0]  <= 1'b0;
-      ss_app_rst_rdy_161m_3d[0]  <= 1'b0;
-      o_tx_pll_locked_d[0]  <= 1'b0;
-      o_tx_pll_locked_2d[0] <= 1'b0;
-      o_tx_pll_locked_3d[0] <= 1'b0;
-     end
-  else
-    begin
-      ss_app_rst_rdy_161m_d[0]   <= ss_app_rst_rdy[0];
-      ss_app_rst_rdy_161m_2d[0]  <= ss_app_rst_rdy_161m_d[0];
-      ss_app_rst_rdy_161m_3d[0]  <= ss_app_rst_rdy_161m_2d[0];
-      o_tx_pll_locked_d[0]  <= o_tx_pll_locked[0];
-      o_tx_pll_locked_2d[0] <= o_tx_pll_locked_d[0];
-      o_tx_pll_locked_3d[0] <= o_tx_pll_locked_2d[0];
-		
-		if (ss_app_rst_rdy_161m_3d[0] && (!ss_app_rst_rdy_161m_2d[0]))
-		  o_tx_pll_locked_pktsw[0] <= 1'b0;
-		else if (o_tx_pll_locked_3d[0])
-		  o_tx_pll_locked_pktsw[0] <= 1'b1;
-	 end	
-	 	 
-always @(posedge clk_bdg_125_clk or negedge iopll_locked_export_125M)
-  if(~iopll_locked_export_125M) begin
-
-      o_tx_pll_locked_pktsw_100M_d <= 1'b1;
-      o_tx_pll_locked_pktsw_100M_2d <= 1'b1;
-	 end
-
-  else  begin 
-    o_tx_pll_locked_pktsw_100M_d <= o_tx_pll_locked_pktsw;
-    o_tx_pll_locked_pktsw_100M_2d <= o_tx_pll_locked_pktsw_100M_d;
-  end
-  
   
 `ifdef NUM_CHANNELS_2 
 assign i_reconfig_clk[1] = clk_bdg_125_clk;
-assign trafficgen_system_status[1] = {o_rx_pcs_ready_sync[1] ,o_tx_pll_locked_sync[1], o_tx_lanes_stable_sync[1] , combined_reset_n_csr};
+assign trafficgen_system_status[1] = {o_rx_pcs_ready_sync[1] ,o_tx_pll_locked_sync[1], o_tx_lanes_stable_sync[1] , system_reset_csr};
 
  // cold boot reset logic
   eth_f_altera_std_synchronizer_nocut cold_boot_rstack_tcam_inst_2 (
@@ -1717,14 +1598,13 @@ assign trafficgen_system_status[1] = {o_rx_pcs_ready_sync[1] ,o_tx_pll_locked_sy
     .dout       (ss_app_cold_rst_ack_n_sync[1])
   );
   
-  always @(posedge clk_bdg_125_clk )
+	 always @(posedge clk_bdg_125_clk or negedge iopll_locked_export_125M) 
   if(~iopll_locked_export_125M)
-    tcam_cold_rst_n[1] <= 1'b1;
-  else if (ss_app_rst_rdy_edge_det[1])
-     tcam_cold_rst_n[1] <= 1'b0;
+    tcam_cold_rst_n[1] <= 1'b0;
   else if(~ss_app_cold_rst_ack_n_sync[1])
     tcam_cold_rst_n[1] <= 1'b1;
-	 
+
+	
 	 // warm boot reset logic
   eth_f_altera_std_synchronizer_nocut warm_boot_rstack_tcam_inst_2 (
     .clk        (clk_bdg_125_clk),	
@@ -1734,47 +1614,12 @@ assign trafficgen_system_status[1] = {o_rx_pcs_ready_sync[1] ,o_tx_pll_locked_sy
   );
   
 
-always @(posedge clk_bdg_125_clk)
+always @(posedge clk_bdg_125_clk or negedge iopll_locked_export_125M) 
   if(~iopll_locked_export_125M)
-    tcam_warm_rst_n[1] <= 1'b1;
-  else if (ss_app_rst_rdy_edge_det[1])
-     tcam_warm_rst_n[1] <= 1'b0;
+    tcam_warm_rst_n[1] <= 1'b0;
   else if(~ss_app_warm_rst_ack_n_sync[1])
     tcam_warm_rst_n[1] <= 1'b1;
-
-always @(posedge o_clk_pll_161m[1] or negedge iopll_locked_export_161[1])
-  if(~iopll_locked_export_161[1])
-    app_ss_rst_req[1] <= 1'b1;
-  else if(ss_app_rst_rdy[1])
-    app_ss_rst_req[1] <= 1'b0;
-	 
-assign ss_app_rst_rdy_edge_det[1] = ss_app_rst_rdy_3d[1] & (!ss_app_rst_rdy_2d[1]);
-
-always @(posedge o_clk_pll_161m[1] or negedge iopll_locked_export_161[1])
-  if(~iopll_locked_export_161[1]) begin
-      o_tx_pll_locked_pktsw[1] <= 1'b1;
-      ss_app_rst_rdy_161m_d[1]   <= 1'b0;
-      ss_app_rst_rdy_161m_2d[1]  <= 1'b0;
-      ss_app_rst_rdy_161m_3d[1]  <= 1'b0;
-      o_tx_pll_locked_d[1]  <= 1'b0;
-      o_tx_pll_locked_2d[1] <= 1'b0;
-      o_tx_pll_locked_3d[1] <= 1'b0;
-	 end
-  else
-    begin
-      ss_app_rst_rdy_161m_d[1]   <= ss_app_rst_rdy[1];
-      ss_app_rst_rdy_161m_2d[1]  <= ss_app_rst_rdy_161m_d[1];
-      ss_app_rst_rdy_161m_3d[1]  <= ss_app_rst_rdy_161m_2d[1];
-      o_tx_pll_locked_d[1] <= o_tx_pll_locked[1];
-      o_tx_pll_locked_2d[1]<= o_tx_pll_locked_d[1];
-      o_tx_pll_locked_3d[1]<= o_tx_pll_locked_2d[1];
-		
-		if (ss_app_rst_rdy_161m_3d[1] && (!ss_app_rst_rdy_161m_2d[1]))
-		  o_tx_pll_locked_pktsw[1] <= 1'b0;
-		else if (o_tx_pll_locked_3d[1])
-		  o_tx_pll_locked_pktsw[1] <= 1'b1;
-	 end	
-
+	
 assign dma_axi_st_tx_tvalid_i[3]                = axis_h2d_if[3].tvalid;
 assign dma_axi_st_tx_tdata_i[3]                 = axis_h2d_if[3].tdata;
 assign dma_axi_st_tx_tkeep_i[3]                 = axis_h2d_if[3].tkeep;
@@ -1839,8 +1684,8 @@ assign axis_d2h_if[0].tid                     = 'd0;
 
 
 // ********************************************************************* //
-//                  PTP Bridge subsystem
-// ********************************************************************* //     	
+//                  Packet Switch subsystem
+// ********************************************************************* //      
 packet_switch_subsys
    #(.HSSI_PORT  (NUM_CHANNELS )   
      ,.USER_PORT  (NUM_CHANNELS )   
@@ -1901,20 +1746,18 @@ packet_switch_subsys
                                                    
     // axi_lite csr clock & reset                  
     ,.axi_lite_clk_i   (clk_bdg_125_clk)	  
-    ,.axi_lite_rst_n_i (o_tx_pll_locked_pktsw_100M_2d) 
+    ,.axi_lite_rst_n_i (iopll_locked_export_125M) 
     //----------------------------------------------------------------------------------------- 
     // init_done status
-    ,.tx_init_done_o        (tx_init_done)
-    ,.rx_init_done_o        (rx_init_done)
+    ,.tx_init_done_o        ()
+    ,.rx_init_done_o        ()
 
     //-----------------------------------------------------------------------------------------
     //TCAM Reset Interface
-    ,.tcam_ss_rst_n         (tcam_cold_rst_n)
-    ,.tcam_ss_clk           (o_clk_pll_161m)
     ,.app_ss_cold_rst_n     (tcam_cold_rst_n)      
     ,.app_ss_warm_rst_n     (tcam_warm_rst_n)       
-    ,.app_ss_rst_req        (app_ss_rst_req)     
-    ,.ss_app_rst_rdy        (ss_app_rst_rdy)
+    ,.app_ss_rst_req        ('0)     
+    ,.ss_app_rst_rdy        ()
     ,.ss_app_cold_rst_ack_n (ss_app_cold_rst_ack_n)
     ,.ss_app_warm_rst_ack_n (ss_app_warm_rst_ack_n)
 
@@ -2109,7 +1952,7 @@ qsfp_top #(
 		.i2c_0_i2c_serial_scl_in     (qsfp_i2c_scl_in),
 		.i2c_0_i2c_serial_sda_oe     (qsfp_i2c_sda_oe),  
 		.i2c_0_i2c_serial_scl_oe     (qsfp_i2c_scl_oe),
-		.modsel  			           (qsfpa_modesel),      // Drive inverted value of modsel to actual qsfp module
+		.modsel  			           (qsfpa_modesel),     
 		.lpmode				           (qsfpa_lpmode),
 		.softresetqsfpm	           (qsfpa_reset),       // Drive inverted value of config_softresetqsfpm to actual qsfp module
 	   .stp_clk                     (),

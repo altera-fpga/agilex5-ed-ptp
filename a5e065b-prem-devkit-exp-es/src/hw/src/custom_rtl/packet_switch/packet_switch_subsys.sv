@@ -85,8 +85,8 @@ module packet_switch_subsys
 	//TCAM Interface signals
 	//-----------------------------------------------------------------------------------------
 	//TCAM Reset Interface
-    ,input  [HSSI_PORT-1:0]                        tcam_ss_rst_n
-    ,input  [HSSI_PORT-1:0]                        tcam_ss_clk
+    //,input  [HSSI_PORT-1:0]                        tcam_ss_rst_n
+    //,input  [HSSI_PORT-1:0]                        tcam_ss_clk
     ,input  [HSSI_PORT-1:0]                        app_ss_cold_rst_n
     ,input  [HSSI_PORT-1:0]                        app_ss_warm_rst_n
     ,input  [HSSI_PORT-1:0]                        app_ss_rst_req
@@ -598,8 +598,8 @@ packet_switch_top
  for(genvar i=0; i<HSSI_PORT; i++) begin : gen_tcam_inst
 	
  ptp_bridge_tcam_mem_ss_cam_0 inst_tcam (
-		.app_ss_st_aclk                    (tcam_ss_clk[i]),                    //   input,   width = 1,       axi_st_aclk.clk
-		.app_ss_st_areset_n                (tcam_ss_rst_n[i]), //rx_areset_n_i[i]),                //   input,   width = 1,   axi_st_areset_n.reset_n
+		.app_ss_st_aclk                    (rx_clk_i[i]), //(tcam_ss_clk[i]),                    //   input,   width = 1,       axi_st_aclk.clk
+		.app_ss_st_areset_n                (rx_areset_n_i[i]),  //(tcam_ss_rst_n[i]), //rx_areset_n_i[i]),                //   input,   width = 1,   axi_st_areset_n.reset_n
 		.app_ss_lite_aclk                  (axi_lite_clk_i),                  //   input,   width = 1,     axi_lite_aclk.clk
 		.app_ss_lite_areset_n              (axi_lite_rst_n_i),              //   input,   width = 1, axi_lite_areset_n.reset_n
 		.ss_app_rst_rdy                    (ss_app_rst_rdy[i]),                    //  output,   width = 1,    graceful_reset.rst_rdy
