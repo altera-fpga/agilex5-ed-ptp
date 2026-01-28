@@ -229,8 +229,8 @@ end
     localparam S_IDLE                = 4'h0;
     localparam S_WAIT_LOAD           = 4'h1;
     localparam S_TOD_VALID           = 4'h2;
-    localparam WAIT_CNT_CSR_LOAD     = 8'd100; // TODO
-    localparam WAIT_CNT_INT_LOAD     = 8'd10;  // TODO
+    localparam WAIT_CNT_CSR_LOAD     = 8'd100;  
+    localparam WAIT_CNT_INT_LOAD     = 8'd10;  
 
     logic [3:0]   todv_state;
     logic [7:0]   wait_cnt;

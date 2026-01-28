@@ -58,6 +58,7 @@ module eth_f_packet_client_csr #(
         input  logic                  sadb_config_done,
         input  logic [ 3:0]           system_status,
         input  logic [33:0]           checker_status,
+        input  logic [31:0]            num_words,
 
         input logic [63:0]            rx_byte_cnt,
 	    input logic [63:0]            tx_byte_cnt,
@@ -241,6 +242,8 @@ always @(posedge i_clk_status) begin
 
        /*0x8C*/ 8'h23:    o_status_readdata <= rx_bw_cnt_sync[31:0];   
        /*0x90*/ 8'h24:    o_status_readdata <= rx_bw_cnt_sync[63:32];   
+       /*0x94*/ 8'h25:    o_status_readdata <= num_words;   
+	   
 
                 default:  o_status_readdata <= 32'hdeadc0de;
             endcase
@@ -362,7 +365,6 @@ eth_f_packet_client_csr_pkt_cnt  u_rx_err_cnt (
 //---------------------------------------------
 
 // multi-bit synchronizers
-
 
 eth_f_multibit_sync #(
     .WIDTH(4)

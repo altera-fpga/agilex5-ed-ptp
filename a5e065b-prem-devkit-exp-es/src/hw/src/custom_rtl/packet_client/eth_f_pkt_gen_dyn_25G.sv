@@ -9,6 +9,7 @@
 module eth_f_pkt_gen_dyn_25G #(
 	parameter WORDS = 1,
 	parameter WIDTH = 64,
+	parameter EMPTY_WIDTH = 5,
 	parameter SOP_ON_LANE0       = 1'b0
 )(
 	input arst,
@@ -31,7 +32,7 @@ module eth_f_pkt_gen_dyn_25G #(
 	output  tx_start,
 	output tx_end_pos,
 	output tx_valid,
-	output [2:0]		tx_empty,
+	output [EMPTY_WIDTH-1:0] tx_empty,
 	
 	//---csr interface---
   input  logic          stat_tx_cnt_clr,
@@ -74,39 +75,13 @@ defparam    stat_counter.AVST_ERR_WIDTH     = 1;
 ///////////////////////////////////////////////////////////////
 // stop and restart the ack
 ///////////////////////////////////////////////////////////////
-/*
-wire tx_ack_internal;
-wire [WIDTH*WORDS-1:0] tx_data_internal;
-wire  tx_start_internal ;
-wire  tx_end_pos_internal ;
-wire [5:0] tx_empty_internal;
-wire tx_valid_internal ;
 
-alt_aeuex_ack_skid_tx ask 
-(
-	.clk(clk_tx),
-	
-	// from the internal TX sources
-	.dat_i({tx_empty_internal,tx_valid_internal,tx_start_internal,tx_end_pos_internal,tx_data_internal}),
-	.ack_i(tx_ack_internal),
-	
-	// to the alt_aeuex_top level pins, feeding the transmitter
-	.dat_o({tx_empty,tx_valid,tx_start,tx_end_pos,tx_data}),
-	.ack_o(tx_ack)	
-);
-defparam ask .WIDTH = WORDS * WIDTH + 6 + 3;
-*/
 wire reset_sync = arst;
 
 ///////////////////////////////////////////////////////////////
 // Packet generator
 ///////////////////////////////////////////////////////////////
 wire tx_pkt_gen_en_sync;
-wire [WIDTH*WORDS-1:0]	dout_ps;	// regular left to right
-wire 	dout_start_ps;  // first of any 8 bytes
-wire 	dout_end_pos_ps; // any byte
-wire [5:0] dout_empty;
-wire dout_valid;
  
 //assign tx_empty         = alt_aeuex_wide_encode64to6(tx_end_pos);
 
@@ -144,21 +119,6 @@ alt_aeuex_pkt_gen_sync ss0 (
 );
 defparam ss0 .WIDTH = 1;
 
-//------------------------------------------------------
-function [2:0] alt_aeuex_wide_encode8to3;
-input [7:0] in;
-
-reg    [2:0] out;
-integer     j;
-
-begin
-    out = 0;
-    for (j = 0; j < 8; j = j + 1) begin
-        if (in[j])   out = out | j[2:0];
-    end
-    alt_aeuex_wide_encode8to3 = out;
-end
-endfunction
 
 //------------------------------------------------------
 endmodule
@@ -275,7 +235,7 @@ reg [13:0] packet_length_next =0;
 reg [13:0]  payload_length_next=0;
 reg [WORDS*WIDTH-1:0] dout_next=0;
 reg [EMPTY_WIDTH-1:0] empty_next=0;
-reg [EMPTY_WIDTH+2:0] empty_next_int=0;
+reg [EMPTY_WIDTH-1:0] empty_next_int=0;
 reg [15:0] index_next=0;
 reg sop_next=0;
 reg eop_next=0;
@@ -337,14 +297,21 @@ wire incr_pulse =  state == SOP &  ena & ~sleep  ;
     end
 
 
-reg [WIDTH-1:0] rjunk = 0;
+reg [WIDTH-1:0] rjunk;
 //always @(posedge clk) begin
 //	rjunk <= (rjunk << 4'hf) ^ prand2;
 //end
 always @(posedge clk) begin
   if(reset) rjunk <= 64'h11223344_10203040;
 
-  else if(valid_next & ~sop_next & ~sop & ena) rjunk <= rjunk+1;// added for controlling data when ready desert
+  //else if(valid_next & ~sop_next & ~sop & ena) rjunk <= rjunk+1;// added for controlling data when ready desert
+  else if(valid_next & ena) 
+    begin
+	  if (state == SOP)
+	    rjunk <= rjunk;
+	  else
+        rjunk <= rjunk+1;// added for controlling data when ready desert
+	end
 end
 
 
@@ -398,12 +365,17 @@ end
 	unused_pktlength_flag_next=unused_pktlength_flag;
         case (state)
             IDLE :  begin
-                if (!ena )  state_next = IDLE;
+                if (!ena ) begin
+    				state_next = IDLE;
+                    //eop_next = 1'b0;
+                    //sop_next = 1'b0;
+                    //valid_next = 1'b0;	
+                  end
                 else begin
                     eop_next = 1'b0;
                     sop_next =1'b0;
                     valid_next =1'b0;
-                    dout_next <= {WORDS*WIDTH{1'b0}};
+                    //dout_next <= {WORDS*WIDTH{1'b0}};
                     if (sleep) state_next = IDLE;
                     else if(nextpacket) begin  
                         state_next = SOP;
@@ -431,7 +403,7 @@ end
                         state_next = DATA2;
                         packet_length_next= packet_length - 14'd8;
                         empty_next_int = 6'd8-packet_length[2:0]+6'd4;
-                        empty_next = empty_next_int[2:0];
+                        empty_next = empty_next_int;
                     end
             end
             DATA2: begin         
@@ -488,77 +460,6 @@ end
         end
         endcase
     end
-
-endmodule
-
-//-------------------------------------------------
-// baeckler - 9-03-2008
-// pipeline for ack 
-
-module alt_aeuex_ack_skid_tx #(
-	parameter WIDTH = 16
-)
-(
-	input clk,
-	
-	input [WIDTH-1:0] dat_i,
-	output ack_i,
-	
-	output reg [WIDTH-1:0] dat_o,
-	input ack_o	
-) /* synthesis ALTERA_ATTRIBUTE = "ALLOW_SYNCH_CTRL_USAGE=OFF" */;
-
-initial dat_o = 0;
-
-reg ack_i_r = 0 /* synthesis preserve_syn_only */;
-reg ack_i_r_dupe = 0 /* synthesis preserve_syn_only */;
-assign ack_i = ack_i_r;
-
-reg [WIDTH-1:0] slush = 0;
-reg slush_valid = 1'b0;
-
-always @(posedge clk) begin
-	ack_i_r <= ack_o;
-	ack_i_r_dupe <= ack_o;
-		
-	if (ack_i_r_dupe) begin
-		// taking input
-		if (ack_o) begin
-			if (slush_valid) begin
-				slush <= dat_i;
-				dat_o <= slush;
-			end
-			else begin
-				dat_o <= dat_i;
-			end
-		end
-		else begin
-			// taking input not outputting
-			slush <= dat_i;
-			slush_valid <= 1'b1;
-		end
-	end	
-	else begin
-		// not taking input
-		if (ack_o) begin
-			// outputting, no new input
-			if (slush_valid) begin
-				dat_o <= slush;
-				slush_valid <= 1'b0;
-			end
-			else begin
-				// this happens when flushing, no slush available - call it slush
-				dat_o <= slush;
-				slush_valid <= 1'b0;
-			end
-		end
-		else begin
-			// not outputting
-			// wait			
-		end	
-	end
-	
-end
 
 endmodule
 

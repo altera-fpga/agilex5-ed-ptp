@@ -114,7 +114,7 @@ set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/packet_client/a
 set_global_assignment -name VERILOG_FILE       ../src/custom_rtl/packet_client/eth_f_multibit_sync.v
 set_global_assignment -name VERILOG_FILE       ../src/custom_rtl/packet_client/eth_f_reset_synchronizer.v
 
-
+set_global_assignment -name VERILOG_FILE       ../src/custom_rtl/alt_reset_delay.v
 
 set_global_assignment -name SYSTEMVERILOG_FILE   ../src/custom_rtl/qsfp_contlr/qsfp_com.sv
 set_global_assignment -name SYSTEMVERILOG_FILE   ../src/custom_rtl/qsfp_contlr/i2c_init_done_check.sv
@@ -124,22 +124,9 @@ set_global_assignment -name SYSTEMVERILOG_FILE   ../src/custom_rtl/qsfp_contlr/q
 
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/components_pkg.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/tx_dma_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/ts_pack.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/ts_chs_compl.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/s10_memory.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/rx_dma_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/period_bus_sync.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/parameter_scfifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/packet_mux_pd_8chs.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/packet_mux.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/packet_demux_pd_8chs.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/packet_demux.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/dc_fifo_param.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/clock_bus.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/cdc_toggle_synchronizer.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/cdc_synchronizer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/cdc_packet_fifo.sv
-set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/components_8chs/cdc_avmm_sync_v2.sv
 
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/tod_subsys/intel_eth_gts_ptp_mtod_top.sv
 set_global_assignment -name SYSTEMVERILOG_FILE ../src/custom_rtl/tod_subsys/intel_eth_gts_ptp_stod_top.sv
