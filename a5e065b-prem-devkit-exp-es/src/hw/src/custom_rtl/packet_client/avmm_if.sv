@@ -10,7 +10,7 @@
 //
 // This is a private interface defining the platform-specific local memory
 // controller interface.  This interface is used in the transition from
-// AXI Lite to AVMM inside Intel-provided logic.  The interface is subject
+// AXI Lite to AVMM inside Altera-provided logic.  The interface is subject
 // to change.
 //
 

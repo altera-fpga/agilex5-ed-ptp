@@ -3,7 +3,6 @@
 //# SPDX-License-Identifier: MIT
 //# ######################################################################## 
 
-
 `timescale 1 ps / 1 ps
 
 module eth_f_packet_client_csr_pkt_cnt(

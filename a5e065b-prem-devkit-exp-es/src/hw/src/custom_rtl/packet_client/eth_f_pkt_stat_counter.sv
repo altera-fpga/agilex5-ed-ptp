@@ -48,7 +48,7 @@ logic [WORDS-1:0]   seg_pkt_sop_r, seg_pkt_eop_r;
 logic [1:0]         seg_sop_cnt_cyc_r, seg_eop_cnt_cyc_r;
 logic seg_valid_r;
 
-always @ (posedge i_clk) begin
+always @ (posedge i_clk or posedge rst) begin
     if (rst) begin
             avst_valid        <= 0;
             avst_sop          <= 0;
@@ -78,7 +78,7 @@ endgenerate
 //---------------------------------------------
 always @ (posedge i_clk)   seg_valid_r <= seg_valid;
 
-always @ (posedge i_clk) begin
+always @ (posedge i_clk or posedge rst) begin
     if (rst) begin
             seg_inframe_r     <= 0;
             seg_pkt_sop_r     <= 0;
@@ -123,7 +123,7 @@ logic [7:0]             stat_eop_cnt_t;
 logic [7:0]             stat_err_cnt_t;
 generate
     if (CLIENT_IF_TYPE==0) begin: SEG_IF
-        always @ (posedge i_clk) begin
+        always @ (posedge i_clk or posedge rst) begin
             if (rst) begin
                 stat_sop_cnt_t <= 0;
                 stat_eop_cnt_t <= 0;
@@ -135,7 +135,7 @@ generate
             end 
         end
     end else begin: AVST_IF
-        always @ (posedge i_clk) begin
+        always @ (posedge i_clk or posedge rst) begin
             if (rst) begin
                 stat_sop_cnt_t <= 0;
                 stat_eop_cnt_t <= 0;
@@ -151,7 +151,7 @@ endgenerate
 
 //---------------------------------------------
 logic [3:0]     clk_cnt;
-always @ (posedge i_clk) begin
+always @ (posedge i_clk or posedge rst) begin
     if (rst)    clk_cnt <= 4'b0;
     else        clk_cnt <= clk_cnt + 4'b1;
     if (rst)                       stat_cnt_vld <= 1'b0;
@@ -159,7 +159,7 @@ always @ (posedge i_clk) begin
     else if (clk_cnt==4'hF)        stat_cnt_vld <= 1'b1;
 end
 
-always @ (posedge i_clk) begin
+always @ (posedge i_clk or posedge rst) begin
     if (rst) begin
         stat_sop_cnt <= 0;
         stat_eop_cnt <= 0;

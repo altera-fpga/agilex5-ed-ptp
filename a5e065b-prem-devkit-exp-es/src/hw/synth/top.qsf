@@ -2,12 +2,7 @@
 # Copyright (C) 2025 Altera Corporation.
 # SPDX-License-Identifier: MIT
 # ######################################################################## 
-# -------------------------------------------------------------------------- #
-# Quartus Prime
-# Version 24.3.0 Build 164 09/18/2024 SC Pro Edition
-# Date created = 20:47:52  September 19, 2024
-#
-# -------------------------------------------------------------------------- #
+
 set_global_assignment -name TOP_LEVEL_ENTITY top
 set_global_assignment -name PWRMGT_VOLTAGE_OUTPUT_FORMAT "LINEAR FORMAT"
 set_global_assignment -name PWRMGT_LINEAR_FORMAT_N "-12"
@@ -391,5 +386,4 @@ set_global_assignment -name SOURCE_TCL_SCRIPT_FILE ip_list.tcl
 set_global_assignment -name SOURCE_TCL_SCRIPT_FILE rtl_list.tcl
 set_global_assignment -name SDC_FILE top.sdc
 set_global_assignment -name SDC_FILE packet_switch.sdc
-#set_global_assignment -name SOURCE_FILE da_drc.dawf
 
