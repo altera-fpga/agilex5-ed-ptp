@@ -1,0 +1,20 @@
+[submodule "a5e065b-prem-devkit-exp-es/src/sw/yocto/poky"]
+	path = a5e065b-prem-devkit-exp-es/src/sw/yocto/poky
+	url = https://git.yoctoproject.org/git/poky
+	branch = scarthgap
+[submodule "a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-intel-fpga"]
+	path = a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-intel-fpga
+	url = https://git.yoctoproject.org/git/meta-intel-fpga
+	branch = scarthgap
+[submodule "a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-intel-fpga-refdes"]
+	path = a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-intel-fpga-refdes
+	url = https://github.com/altera-opensource/meta-intel-fpga-refdes.git
+	branch = scarthgap
+[submodule "a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-openembedded"]
+	path = a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-openembedded
+	url = https://git.openembedded.org/meta-openembedded
+	branch = scarthgap
+[submodule "a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-clang"]
+	path = a5e065b-prem-devkit-exp-es/src/sw/yocto/meta-clang
+	url = https://github.com/kraj/meta-clang.git
+	branch = scarthgap
