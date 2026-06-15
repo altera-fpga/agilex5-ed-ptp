@@ -306,7 +306,6 @@ package() {
 		cp -vrL *-${MACHINE}.rootfs_nor.ubifs $STAGING_FOLDER/       	|| echo "[INFO] No nor ubifs found."
 		cp -vrL *-$MACHINE.rootfs.cpio* $STAGING_FOLDER/	|| echo "[INFO] No .cpio found."
 		cp -vrL *-$MACHINE.rootfs.manifest $STAGING_FOLDER/	|| echo "[INFO] No manifest found."
-		cp -vrL zImage $STAGING_FOLDER/			|| echo "[INFO] No zImage found."
 		cp -vrL Image $STAGING_FOLDER/			|| echo "[INFO] No Image found."
 		cp -vrL Image.lzma $STAGING_FOLDER/		|| echo "[INFO] No Image.lzma found."
 

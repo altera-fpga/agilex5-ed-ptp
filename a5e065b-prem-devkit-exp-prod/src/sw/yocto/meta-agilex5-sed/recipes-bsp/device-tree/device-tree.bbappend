@@ -3,7 +3,9 @@ COMPATIBLE_MACHINE:append = "|agilex5_dk_a5e065bb32a"
 # agilex5_dk_a5e065bb32a is the renamed agilex5_dk_a5e065bb32aes1; pull in the
 # AIC0 patch file that the base recipe's do_configure else-branch expects.
 FILESEXTRAPATHS:prepend:agilex5_dk_a5e065bb32a := "${THISDIR}/../../../meta-intel-fpga-refdes/recipes-bsp/device-tree/files:"
-SRC_URI:append:agilex5_dk_a5e065bb32a = " file://0001-AIC0-tsn-config.patch_bc"
+SRC_URI:append:agilex5_dk_a5e065bb32a = " file://0001-AIC0-tsn-config.patch_bc \
+                                          file://socfpga_agilex5_ghrd.dtsi \
+                                          "
 
 # The B0 kernel removed the _a0.dts variants and introduced _b0.dts equivalents.
 # Create symlinks before the base recipe's do_configure runs so its cp commands

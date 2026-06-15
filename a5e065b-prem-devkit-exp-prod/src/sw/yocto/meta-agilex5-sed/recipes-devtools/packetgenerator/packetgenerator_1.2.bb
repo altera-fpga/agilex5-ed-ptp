@@ -5,8 +5,8 @@ LIC_FILES_CHKSUM = "file://LICENSE;md5=7c6367005511b6ea56cf4966d5ba33fb"
 
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
  
-SRC_URI = "file://packetgenerator_v1.1.tgz"
-S = "${WORKDIR}/packetgenerator_v1.1"
+SRC_URI = "file://packetgenerator_v1.2.tgz"
+S = "${WORKDIR}/packetgenerator_v1.2"
 
 #do_compile () {
 #	#bbnote "Packetgenerator Executing compile... - ${S}. Workdir: ${WORKDIR}"

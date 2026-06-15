@@ -1,3 +1,7 @@
+DEPENDS:append:agilex5_dk_a5e065bb32a = " arm-trusted-firmware bash"
+COMPILE_PREPEND_FILES:agilex5_dk_a5e065bb32a = " bl31.bin "
+DEPLOY_APPEND_FILES:agilex5_dk_a5e065bb32a = ""
+
 python() {
     # Retrieve the SRC_URI list and split it into individual items
     src_uri_list = (d.getVar('SRC_URI') or "").split()
