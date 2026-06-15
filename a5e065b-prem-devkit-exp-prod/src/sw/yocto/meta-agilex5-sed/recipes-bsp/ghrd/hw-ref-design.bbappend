@@ -8,13 +8,13 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/Proprietary;md5=0557f9d92cf58f2
 IMAGE_TYPE ?= "gsrd"
 ARM64_GHRD_CORE_RBF = "ghrd.core.rbf"
 
-sha256sum_PTP_2P10G = "5bee1a96f4d29dbe01a35a8488486a77787365d9282798da7e3fe500566b619d"
+sha256sum_PTP_2P10G = "dae34ede92a8aecf4d79dc2180949e67c9053ce18c6499b5ab5826a20b37a13f5"
 
-SRC_URI:agilex5_dk_a5e065bb32aes1 = "\
+SRC_URI:agilex5_dk_a5e065bb32a = "\
                 file://${MACHINE}_gsrd_ghrd_${SOLUTION}.core.rbf;name=agilex_sm_gsrd_core \
                 "
 
-SRC_URI[agilex_sm_gsrd_core.sha256sum] = "${@ d.getVar('sha256sum_'+"d.getVar('SOLUTION')")"}"
+SRC_URI[agilex_sm_gsrd_core.sha256sum] = "${@d.getVar('sha256sum_' + d.getVar('SOLUTION'))}"
 
 do_install () {
         if [[ "${MACHINE}" == *"agilex"* ]]; then

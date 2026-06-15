@@ -19,10 +19,10 @@ SRC_URI = "${ATF_REPO};protocol=${ATF_PROT};branch=${ATF_BRANCH}"
 
 S = "${WORKDIR}/git"
 
-COMPATIBLE_MACHINE = "(agilex3|agilex5_dk_a5e065bb32aes1|agilex5_dk_a5e013bm16aea|agilex5_dk_a5e013bb32aes|agilex5_dk_a5e013bb32aes_5s|agilex5_mk_a5e065bb32aes1|agilex7_dk_si_agf014eb|agilex7_dk_si_agi027fc|agilex7_dk_dev_agm039fes|agilex7_dk_dev_agm039ea|agilex7_dk_dev_agf023fa|agilex5|stratix10_htile|n5x)"
+COMPATIBLE_MACHINE = "(agilex3|agilex5_dk_a5e065bb32a|agilex5_dk_a5e013bm16aea|agilex5_dk_a5e013bb32aes|agilex5_dk_a5e013bb32aes_5s|agilex5_mk_a5e065bb32aes1|agilex7_dk_si_agf014eb|agilex7_dk_si_agi027fc|agilex7_dk_dev_agm039fes|agilex7_dk_dev_agm039ea|agilex7_dk_dev_agf023fa|agilex5|stratix10_htile|n5x)"
 ATFPLAT = "${MACHINE}"
 ATFPLAT:agilex3 = "agilex3"
-ATFPLAT:agilex5_dk_a5e065bb32aes1 = "agilex5"
+ATFPLAT:agilex5_dk_a5e065bb32a = "agilex5"
 ATFPLAT:agilex5_dk_a5e013bm16aea = "agilex5"
 ATFPLAT:agilex5_dk_a5e013bb32aes = "agilex5"
 ATFPLAT:agilex5_dk_a5e013bb32aes_5s = "agilex5"
