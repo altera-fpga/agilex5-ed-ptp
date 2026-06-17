@@ -4,7 +4,7 @@ set all the environment variables from setup.sh as below
 in the given order
 1. set resources
   a. VCS version vcs/U-2023.03-SP2-1 vcs-vcsmx-lic
-  b. QUARTUS VERSION 25.3
+  b. QUARTUS VERSION 26.1
   c. Synopsys_verdi version synopsys_verdi/U-2023.03-SP2-1
   d. ROOTDIR - <user path>/<repo name>/src/hw
 2. The below env variables will be set by 
