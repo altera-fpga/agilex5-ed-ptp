@@ -441,6 +441,12 @@ package() {
 			for file in *_dk_dev_agm039fes*; do
 				mv "$file" "${file/_dk_dev_agm039fes/}"
 			done
+		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32aes1_b0" ]; then
+			for file in *_dk_a5e065bb32aes1_b0*; do
+				newname="${file/_dk_a5e065bb32aes1_b0/}"
+				[ -d "$newname" ] && rm -rf "$newname"
+				mv -f "$file" "$newname"
+			done
 		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32a" ]; then
 			for file in *_dk_a5e065bb32a*; do
 				mv "$file" "${file/_dk_a5e065bb32a/}"
@@ -472,7 +478,7 @@ package() {
 	    	elif [[ "$MACHINE" == *"agilex5_dk_"* || "$MACHINE" == *"agilex5_modular"* ]]; then
 	        	tar cvzf sdimage.tar.gz gsrd-console-image-agilex5.wic
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
-            		xz --best console-image-minimal-agilex5.wic
+            		xz --force --best console-image-minimal-agilex5.wic
 	    	else
             		tar cvzf sdimage.tar.gz gsrd-console-image-$MACHINE.wic
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
