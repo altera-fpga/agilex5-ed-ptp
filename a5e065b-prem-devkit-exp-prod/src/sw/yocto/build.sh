@@ -443,9 +443,7 @@ package() {
 			done
 		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32aes1_b0" ]; then
 			for file in *_dk_a5e065bb32aes1_b0*; do
-				newname="${file/_dk_a5e065bb32aes1_b0/}"
-				[ -d "$newname" ] && rm -rf "$newname"
-				mv -f "$file" "$newname"
+				mv -f "$file" "${file/_dk_a5e065bb32aes1_b0/}"
 			done
 		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32a" ]; then
 			for file in *_dk_a5e065bb32a*; do
