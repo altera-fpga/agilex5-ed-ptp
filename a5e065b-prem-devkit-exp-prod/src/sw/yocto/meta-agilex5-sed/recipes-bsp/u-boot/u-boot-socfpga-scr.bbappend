@@ -16,4 +16,3 @@ do_deploy() {
                 install -m 0644 ${WORKDIR}/boot.scr.uimg ${DEPLOYDIR}/boot.scr.uimg
         fi
 }
-

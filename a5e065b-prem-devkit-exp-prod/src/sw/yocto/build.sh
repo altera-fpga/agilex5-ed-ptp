@@ -73,7 +73,7 @@ fi
 PTP_SW_VERSION_STRING=""
 if [[ -n "${SOLUTION}" ]]; then
 	if [[ "$SOLUTION" == "PTP_2P10G" ]]; then
-		ptp_sw_version="-altera-2x10G-ptp-sed-Q25.3-R1.1"
+		ptp_sw_version="-altera-2x10G-ptp-sed-Q26.1-R1.1"
 		PTP_SW_VERSION_STRING=${ptp_sw_version}
 	fi
 fi
@@ -86,7 +86,7 @@ fi
 #------------------------------------------------------------------------------------------#
 # Set default U-Boot Version
 #------------------------------------------------------------------------------------------#
-export UBOOT_VER=v2025.07
+export UBOOT_VER=v2026.01
 export UBOOT_REL=
 echo "UBOOT_VERSION        = $UBOOT_VER$UBOOT_REL"
 UBOOT_SOCFPGA_BRANCH=socfpga_$UBOOT_VER$UBOOT_REL
@@ -123,7 +123,7 @@ echo "UBOOT_CONFIG         = $UB_CONFIG"
 #------------------------------------------------------------------------------------------#
 # Set Arm-Trusted-Firmware version
 #------------------------------------------------------------------------------------------#
-export ATF_VER=v2.13.0
+export ATF_VER=v2.14.0
 echo "ATF_VERSION          = $ATF_VER"
 ATF_BRANCH=socfpga_$ATF_VER
 echo "ATF_BRANCH           = $ATF_BRANCH"
@@ -172,9 +172,6 @@ build_setup() {
 	pushd $WORKSPACE > /dev/null
 		# Update submodules
 		git submodule update --init -r
-		if [[ "$MACHINE" == "agilex5_dk_a5e065bb32aes1" && -n "${SOLUTION}" ]]; then
-			sed -i 's/kernel.itb/kernel_sed.itb/' meta-intel-fpga-refdes/conf/machine/agilex5_dk_a5e065bb32aes1-gsrd.conf
-		fi
 	popd > /dev/null
 
 #------------------------------------------------------------------------------------------#
@@ -309,7 +306,6 @@ package() {
 		cp -vrL *-${MACHINE}.rootfs_nor.ubifs $STAGING_FOLDER/       	|| echo "[INFO] No nor ubifs found."
 		cp -vrL *-$MACHINE.rootfs.cpio* $STAGING_FOLDER/	|| echo "[INFO] No .cpio found."
 		cp -vrL *-$MACHINE.rootfs.manifest $STAGING_FOLDER/	|| echo "[INFO] No manifest found."
-		cp -vrL zImage $STAGING_FOLDER/			|| echo "[INFO] No zImage found."
 		cp -vrL Image $STAGING_FOLDER/			|| echo "[INFO] No Image found."
 		cp -vrL Image.lzma $STAGING_FOLDER/		|| echo "[INFO] No Image.lzma found."
 
@@ -445,9 +441,13 @@ package() {
 			for file in *_dk_dev_agm039fes*; do
 				mv "$file" "${file/_dk_dev_agm039fes/}"
 			done
-		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32aes1" ]; then
-			for file in *_dk_a5e065bb32aes1*; do
-				mv "$file" "${file/_dk_a5e065bb32aes1/}"
+		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32aes1_b0" ]; then
+			for file in *_dk_a5e065bb32aes1_b0*; do
+				mv -f "$file" "${file/_dk_a5e065bb32aes1_b0/}"
+			done
+		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32a" ]; then
+			for file in *_dk_a5e065bb32a*; do
+				mv "$file" "${file/_dk_a5e065bb32a/}"
 			done
 		elif [ "$MACHINE" == "agilex5_dk_a5e013bb32aesi0" ]; then
 			for file in *_dk_a5e013bb32aesi0*; do
@@ -476,7 +476,7 @@ package() {
 	    	elif [[ "$MACHINE" == *"agilex5_dk_"* || "$MACHINE" == *"agilex5_modular"* ]]; then
 	        	tar cvzf sdimage.tar.gz gsrd-console-image-agilex5.wic
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
-            		xz --best console-image-minimal-agilex5.wic
+            		xz --force --best console-image-minimal-agilex5.wic
 	    	else
             		tar cvzf sdimage.tar.gz gsrd-console-image-$MACHINE.wic
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
