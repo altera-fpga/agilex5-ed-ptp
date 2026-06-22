@@ -16,6 +16,13 @@ The system's primary components include:
   - Linux Drivers
   - User Space Applications
 
+The System Example Design support following design configurations on Altera Development Kits.
+  
+|SL No| Design configuration                        | _Rate_   | Dev Kit Supported        |
+|-----|---------------------------------------------|----------|:------------------------:|
+|1.   |2-port 10GbE with PTP1588                    | 10GbE    | DK-A5E065BB32AEA         |
+|2.   |2-port 25GbE with PTP1588                    | 25GbE    | DK-A5E065AB32AEA         |
+
 ![](./sm_ptp_bd.png)
 
 ## Repository Structure
@@ -23,19 +30,30 @@ The system's primary components include:
 Directory Structure Used in This Example Design:
 
 ``` bash
-|--- a5e065b-prem-devkit-exp-es/
+agilex5-ed-ptp
+|--- a5e065b-prem-devkit-exp-prod/
   |   |--- src
   |   |   |--- hw
   |   |   |--- sw
-
+|--- a5e065a-prem-devkit-exp-prod/
+  |   |--- src
+  |   |   |--- hw
+  |   |   |--- sw
 ```
 
 ## Project Details
-
+**Design Configuration**: 2-Port 10GbE PTP1588 System Example Design
 - **Family**: Agilex&trade; 5 E-Series( Group B)
-- **Quartus Version**: 25.3
-- **Development Kit**: Agilex&trade; 5 FPGA E-Series 065B Premium Development Kit([DK-A5E065BB32AES1](https://www.altera.com/products/devkit/a1jui0000061qifmaa/agilex-5-fpga-and-soc-e-series-premium-development-kit-es))
-- **Device Part**: A5ED065BB32AE6SR0
+- **Quartus Version**: 26.1
+- **Development Kit**: Agilex&trade; 5 FPGA E-Series 065B Premium Development Kit([DK-A5E065BB32AEA](https://www.altera.com/products/devkit/po-3284/agilex-5-fpga-e-series-065b-premium-development-kit))
+- **Device Part**: A5ED065BB32AE4S
+
+**Design Configuration**: 2-Port 25GbE PTP1588 System Example Design
+- **Family**: Agilex&trade; 5 E-Series( Group A)
+- **Quartus Version**: 26.1
+- **Development Kit**: Agilex&trade; 5 FPGA E-Series 065A Premium Development Kit([DK-A5E065AB32AEA](https://www.altera.com/products/devkit/po-3278/agilex-5-fpga-and-soc-e-series-065a-modular-development-kit))
+- **Device Part**: A5ED065AB32AE1V
+
 
 ## Getting Started
 
@@ -48,5 +66,5 @@ cd agilex5-ed-ptp
 
 Follow the below procedure to build the HW and the Software artifacts.
 
-- [Building the hardware](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-es/src/hw)
-- [Building the software](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-es/src/sw)
+- [Building 10GbE Design on DK-A5E065BB32AEA](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-prod/src/README.md)
+- [Building 25GbE Design on DK-A5E065AB32AEA](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065a-prem-devkit-exp-prod/src/README.md)
