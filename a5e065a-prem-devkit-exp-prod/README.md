@@ -2,7 +2,7 @@
 
 ## Description
 
-The Agilex &trade; 5 10GbE Precision Time Protocol(IEEE 1588v2) System Example Design includes two Ethernet ports with built-in 2-step hardware PTP timestamping capabilities. The integrated Agilex&trade; 5 Hard Processor System (HPS) operates a PTP software stack that complements the hardware-based timestamping functionality.
+The Agilex &trade; 5 25GbE Precision Time Protocol(IEEE 1588v2) System Example Design includes two Ethernet ports with built-in 2-step hardware PTP timestamping capabilities. The integrated Agilex&trade; 5 Hard Processor System (HPS) operates a PTP software stack that complements the hardware-based timestamping functionality.
 
 The System Example Design (SED) provides the necessary drivers and user applications to support the Linux Network stack, the Linux PTP stack, and network Quality of Service (QoS) through the Linux kernel Traffic Control (TC) system.
 
@@ -23,19 +23,18 @@ The system's primary components include:
 Directory Structure Used in This Example Design:
 
 ``` bash
-|--- a5e065b-prem-devkit-exp-es/
+|--- a5e065a-prem-devkit-exp-prod/
   |   |--- src
-  |   |   |--- hw
   |   |   |--- sw
 
 ```
 
 ## Project Details
 
-- **Family**: Agilex&trade; 5 E-Series( Group B)
-- **Quartus Version**: 25.3
-- **Development Kit**: Agilex&trade; 5 FPGA E-Series 065B Premium Development Kit([DK-A5E065BB32AES1](https://www.altera.com/products/devkit/a1jui0000061qifmaa/agilex-5-fpga-and-soc-e-series-premium-development-kit-es))
-- **Device Part**: A5ED065BB32AE6SR0
+- **Family**: Agilex&trade; 5 E-Series( Group A)
+- **Quartus Version**: 26.1
+- **Development Kit**: Agilex&trade; 5 FPGA E-Series 065A Premium Development Kit([DK-A5E065AB32AEA](https://www.altera.com/products/devkit/po-3278/agilex-5-fpga-and-soc-e-series-065a-modular-development-kit))
+- **Device Part**: A5ED065AB32AE1V
 
 ## Getting Started
 
@@ -46,7 +45,6 @@ git clone https://github.com/altera-fpga/agilex5-ed-ptp.git
 cd agilex5-ed-ptp
 ```
 
-Follow the below procedure to build the HW and the Software artifacts.
+Follow the below procedure to build the Software artifacts.
 
-- [Building the hardware](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-es/src/hw)
-- [Building the software](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065b-prem-devkit-exp-es/src/sw)
+- [Building the software](https://github.com/altera-fpga/agilex5-ed-ptp/tree/main/a5e065a-prem-devkit-exp-prod/src/sw)

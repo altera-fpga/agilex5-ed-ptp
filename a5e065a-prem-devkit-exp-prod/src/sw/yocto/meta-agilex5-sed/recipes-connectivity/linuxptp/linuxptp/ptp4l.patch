@@ -1,0 +1,69 @@
+diff --git a/port.c b/port.c
+index 6baf5c8..768c8c3 100644
+--- a/port.c
++++ b/port.c
+@@ -1374,6 +1374,7 @@ static void port_syfufsm(struct port *p, enum syfu_event event,
+ 			 struct ptp_message *m)
+ {
+ 	struct ptp_message *syn, *fup;
++	int16_t diff;
+ 
+ 	switch (p->syfu) {
+ 	case SF_EMPTY:
+@@ -1399,6 +1400,9 @@ static void port_syfufsm(struct port *p, enum syfu_event event,
+ 		switch (event) {
+ 		case SYNC_MISMATCH:
+ 			port_syfufsm_print_mismatch(p, event, m);
++			diff = m->header.sequenceId - p->last_syncfup->header.sequenceId;
++			if (diff < 0)
++			    break;
+ 			msg_put(p->last_syncfup);
+ 			msg_get(m);
+ 			p->last_syncfup = m;
+@@ -1408,6 +1412,9 @@ static void port_syfufsm(struct port *p, enum syfu_event event,
+ 			break;
+ 		case FUP_MISMATCH:
+ 			port_syfufsm_print_mismatch(p, event, m);
++			diff = m->header.sequenceId - p->last_syncfup->header.sequenceId;
++			if (diff < 0)
++			     break;
+ 			msg_put(p->last_syncfup);
+ 			msg_get(m);
+ 			p->last_syncfup = m;
+@@ -1431,6 +1438,9 @@ static void port_syfufsm(struct port *p, enum syfu_event event,
+ 		switch (event) {
+ 		case SYNC_MISMATCH:
+ 			port_syfufsm_print_mismatch(p, event, m);
++			diff = m->header.sequenceId - p->last_syncfup->header.sequenceId;
++			if (diff < 0)
++			     break;
+ 			msg_put(p->last_syncfup);
+ 			msg_get(m);
+ 			p->last_syncfup = m;
+@@ -1449,6 +1459,9 @@ static void port_syfufsm(struct port *p, enum syfu_event event,
+ 			break;
+ 		case FUP_MISMATCH:
+ 			port_syfufsm_print_mismatch(p, event, m);
++			diff = m->header.sequenceId - p->last_syncfup->header.sequenceId;
++			if (diff < 0)
++			    break;
+ 			msg_put(p->last_syncfup);
+ 			msg_get(m);
+ 			p->last_syncfup = m;
+diff --git a/tsproc.c b/tsproc.c
+index a871049..f2880c1 100644
+--- a/tsproc.c
++++ b/tsproc.c
+@@ -133,6 +133,12 @@ tmv_t get_raw_delay(struct tsproc *tsp)
+ 	t41 = tmv_sub(tsp->t4, tsp->t1);
+ 	delay = tmv_div(tmv_add(t23, t41), 2);
+ 
++	pr_debug("T2: %10" PRId64, tsp->t2.ns);
++	pr_debug("T3: %10" PRId64, tsp->t3.ns);
++	pr_debug("T4: %10" PRId64, tsp->t4.ns);
++	pr_debug("T1: %10" PRId64, tsp->t1.ns);
++	pr_debug("Delay: %10" PRId64, tmv_to_nanoseconds(delay));
++
+ 	if (tmv_sign(delay) < 0) {
+ 		pr_debug("negative delay %10" PRId64,
+ 			 tmv_to_nanoseconds(delay));
