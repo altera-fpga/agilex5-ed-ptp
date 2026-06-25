@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<deploy
+ date="2020.10.28.22:04:07"
+ outputDirectory="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/">
+ <perimeter>
+  <parameter
+     name="AUTO_GENERATION_ID"
+     type="Integer"
+     defaultValue="0"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_UNIQUE_ID"
+     type="String"
+     defaultValue=""
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_DEVICE_FAMILY"
+     type="String"
+     defaultValue="Stratix 10"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_DEVICE"
+     type="String"
+     defaultValue="1SG280LU3F50I2LG"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_DEVICE_SPEEDGRADE"
+     type="String"
+     defaultValue="2"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_CLOCK_CLOCK_RATE"
+     type="Long"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_CLOCK_CLOCK_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_CLOCK_RESET_DOMAIN"
+     type="Integer"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_AVALON_MASTER_ADDRESS_MAP"
+     type="AddressMap"
+     defaultValue=""
+     onHdl="0"
+     affectsHdl="1" />
+  <parameter
+     name="AUTO_AVALON_MASTER_ADDRESS_WIDTH"
+     type="AddressWidthType"
+     defaultValue="-1"
+     onHdl="0"
+     affectsHdl="1" />
+  <interface name="clock" kind="clock" start="0">
+   <property name="clockRate" value="0" />
+   <property name="externallyDriven" value="false" />
+   <property name="ptfSchematicName" value="" />
+   <port name="clk" direction="input" role="clk" width="1" />
+  </interface>
+  <interface name="avalon_master" kind="avalon" start="1">
+   <property name="adaptsTo" value="" />
+   <property name="addressGroup" value="0" />
+   <property name="addressUnits" value="SYMBOLS" />
+   <property name="alwaysBurstMaxBurst" value="false" />
+   <property name="associatedClock" value="clock" />
+   <property name="associatedReset" value="reset" />
+   <property name="bitsPerSymbol" value="8" />
+   <property name="burstOnBurstBoundariesOnly" value="false" />
+   <property name="burstcountUnits" value="WORDS" />
+   <property name="constantBurstBehavior" value="false" />
+   <property name="dBSBigEndian" value="false" />
+   <property name="doStreamReads" value="false" />
+   <property name="doStreamWrites" value="false" />
+   <property name="holdTime" value="0" />
+   <property name="interleaveBursts" value="false" />
+   <property name="isAsynchronous" value="false" />
+   <property name="isBigEndian" value="false" />
+   <property name="isReadable" value="false" />
+   <property name="isWriteable" value="false" />
+   <property name="linewrapBursts" value="false" />
+   <property name="maxAddressWidth" value="32" />
+   <property name="maximumPendingReadTransactions" value="0" />
+   <property name="maximumPendingWriteTransactions" value="0" />
+   <property name="minimumReadLatency" value="1" />
+   <property name="minimumResponseLatency" value="1" />
+   <property name="prSafe" value="false" />
+   <property name="readLatency" value="0" />
+   <property name="readWaitTime" value="1" />
+   <property name="registerIncomingSignals" value="false" />
+   <property name="registerOutgoingSignals" value="false" />
+   <property name="setupTime" value="0" />
+   <property name="timingUnits" value="Cycles" />
+   <property name="waitrequestAllowance" value="0" />
+   <property name="writeWaitTime" value="0" />
+   <port name="address" direction="output" role="address" width="32" />
+   <port name="read" direction="output" role="read" width="1" />
+   <port name="readdata" direction="input" role="readdata" width="32" />
+   <port name="readdatavalid" direction="input" role="readdatavalid" width="1" />
+   <port name="waitrequest" direction="input" role="waitrequest" width="1" />
+   <port name="write" direction="output" role="write" width="1" />
+   <port name="byteenable" direction="output" role="byteenable" width="4" />
+   <port name="writedata" direction="output" role="writedata" width="32" />
+  </interface>
+  <interface name="reset" kind="reset" start="0">
+   <property name="associatedClock" value="clock" />
+   <property name="synchronousEdges" value="DEASSERT" />
+   <port name="rst_n" direction="input" role="reset_n" width="1" />
+  </interface>
+  <interface name="conduit_end" kind="conduit" start="0">
+   <property name="associatedClock" value="" />
+   <property name="associatedReset" value="" />
+   <property name="prSafe" value="false" />
+   <port name="i2c_data_in" direction="input" role="conduit_data_in" width="1" />
+   <port name="i2c_clk_in" direction="input" role="conduit_clk_in" width="1" />
+   <port
+       name="i2c_data_oe"
+       direction="output"
+       role="conduit_data_oe"
+       width="1" />
+   <port name="i2c_clk_oe" direction="output" role="conduit_clk_oe" width="1" />
+  </interface>
+ </perimeter>
+ <entity kind="i2c_bfm" version="1.0" name="i2c_bfm">
+  <parameter name="AUTO_CLOCK_CLOCK_RATE" value="-1" />
+  <parameter name="AUTO_CLOCK_CLOCK_DOMAIN" value="-1" />
+  <parameter name="AUTO_CLOCK_RESET_DOMAIN" value="-1" />
+  <parameter name="AUTO_GENERATION_ID" value="0" />
+  <parameter name="AUTO_DEVICE" value="1SG280LU3F50I2LG" />
+  <parameter name="AUTO_DEVICE_FAMILY" value="Stratix 10" />
+  <parameter name="AUTO_AVALON_MASTER_ADDRESS_WIDTH" value="-1" />
+  <parameter name="AUTO_UNIQUE_ID" value="" />
+  <parameter name="AUTO_AVALON_MASTER_ADDRESS_MAP" value="" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="2" />
+  <generatedFiles>
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/synth/i2c_bfm.v"
+       attributes="CONTAINS_INLINE_CONFIGURATION" />
+  </generatedFiles>
+  <childGeneratedFiles>
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/synth/i2c_bfm.v"
+       attributes="CONTAINS_INLINE_CONFIGURATION" />
+  </childGeneratedFiles>
+  <sourceFiles>
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm.ip" />
+  </sourceFiles>
+  <childSourceFiles>
+   <file
+       path="/nfs/site/disks/swbld_archive_2/acds/20.1/177/linux64/ip/altera/sopc_builder_ip/altera_i2cslave_to_avlmm_bridge/altera_i2cslave_to_avlmm_bridge_hw.tcl" />
+  </childSourceFiles>
+  <messages>
+   <message level="Info" culprit="i2c_bfm">"Generating: i2c_bfm"</message>
+   <message level="Info" culprit="i2c_bfm">"Generating: altera_i2cslave_to_avlmm_bridge"</message>
+  </messages>
+ </entity>
+ <entity
+   kind="altera_i2cslave_to_avlmm_bridge"
+   version="19.1.0"
+   name="altera_i2cslave_to_avlmm_bridge">
+  <parameter name="I2C_SLAVE_ADDRESS" value="85" />
+  <parameter name="BYTE_ADDRESSING" value="2" />
+  <parameter name="ADDRESS_STEALING" value="0" />
+  <parameter name="READ_ONLY" value="0" />
+  <generatedFiles>
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altera_i2cslave_to_avlmm_bridge.v"
+       attributes="TOP_LEVEL_FILE" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_avl_mst_intf_gen.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_clk_cnt.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_condt_det.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_databuffer.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_rxshifter.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_slvfsm.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_spksupp.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_txout.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_txshifter.v"
+       attributes="" />
+  </generatedFiles>
+  <childGeneratedFiles>
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altera_i2cslave_to_avlmm_bridge.v"
+       attributes="TOP_LEVEL_FILE" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_avl_mst_intf_gen.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_clk_cnt.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_condt_det.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_databuffer.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_rxshifter.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_slvfsm.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_spksupp.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_txout.v"
+       attributes="" />
+   <file
+       path="/nfs/site/disks/psg_data_30/bbhimava/IOFS_AC/n6000/src/qsfp/ip/i2c_bfm/altera_i2cslave_to_avlmm_bridge_1910/synth/altr_i2c_txshifter.v"
+       attributes="" />
+  </childGeneratedFiles>
+  <sourceFiles>
+   <file
+       path="/nfs/site/disks/swbld_archive_2/acds/20.1/177/linux64/ip/altera/sopc_builder_ip/altera_i2cslave_to_avlmm_bridge/altera_i2cslave_to_avlmm_bridge_hw.tcl" />
+  </sourceFiles>
+  <childSourceFiles/>
+  <instantiator instantiator="i2c_bfm" as="i2cslave_to_avlmm_bridge_0" />
+  <messages>
+   <message level="Info" culprit="i2c_bfm">"Generating: altera_i2cslave_to_avlmm_bridge"</message>
+  </messages>
+ </entity>
+</deploy>

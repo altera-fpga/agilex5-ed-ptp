@@ -1,0 +1,19 @@
+	component i2c_bfm is
+		port (
+			clk           : in  std_logic                     := 'X';             -- clk
+			address       : out std_logic_vector(31 downto 0);                    -- address
+			read          : out std_logic;                                        -- read
+			readdata      : in  std_logic_vector(31 downto 0) := (others => 'X'); -- readdata
+			readdatavalid : in  std_logic                     := 'X';             -- readdatavalid
+			waitrequest   : in  std_logic                     := 'X';             -- waitrequest
+			write         : out std_logic;                                        -- write
+			byteenable    : out std_logic_vector(3 downto 0);                     -- byteenable
+			writedata     : out std_logic_vector(31 downto 0);                    -- writedata
+			rst_n         : in  std_logic                     := 'X';             -- reset_n
+			i2c_data_in   : in  std_logic                     := 'X';             -- conduit_data_in
+			i2c_clk_in    : in  std_logic                     := 'X';             -- conduit_clk_in
+			i2c_data_oe   : out std_logic;                                        -- conduit_data_oe
+			i2c_clk_oe    : out std_logic                                         -- conduit_clk_oe
+		);
+	end component i2c_bfm;
+

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<simPackage>
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altera_i2cslave_to_avlmm_bridge.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_avl_mst_intf_gen.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_clk_cnt.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_condt_det.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_databuffer.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_rxshifter.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_slvfsm.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_spksupp.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_txout.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_txshifter.v"
+   type="VERILOG"
+   library="altera_i2cslave_to_avlmm_bridge_1910" />
+ <file
+   path="sim/i2c_bfm.v"
+   type="VERILOG"
+   library="i2c_bfm"
+   hasInlineConfiguration="true" />
+ <topLevel name="i2c_bfm.i2c_bfm" />
+ <deviceFamily name="stratix10" />
+</simPackage>

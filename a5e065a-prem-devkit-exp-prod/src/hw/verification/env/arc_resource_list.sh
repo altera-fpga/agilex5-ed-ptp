@@ -1,0 +1,6 @@
+export PYTHON="python/3.7.7"
+export CMAKE="cmake/3.11.4"
+#export GCC="gcc/7.2.0"
+export VCS="vcs/U-2023.03-SP2-1 vcs-vcsmx-lic"
+export QUARTUS_VER="acds/26.1/"
+export VERDI="synopsys_verdi/U-2023.03-SP2-1"

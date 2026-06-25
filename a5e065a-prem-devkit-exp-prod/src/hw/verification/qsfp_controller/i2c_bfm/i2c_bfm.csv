@@ -1,0 +1,27 @@
+# system info i2c_bfm on 2020.10.28.22:04:04
+system_info:
+name,value
+DEVICE,1SG280LU3F50I2LG
+DEVICE_FAMILY,Stratix 10
+GENERATION_ID,0
+#
+#
+# Files generated for i2c_bfm on 2020.10.28.22:04:04
+files:
+filepath,kind,attributes,module,is_top
+sim/i2c_bfm.v,VERILOG,CONTAINS_INLINE_CONFIGURATION,i2c_bfm,true
+altera_i2cslave_to_avlmm_bridge_1910/sim/altera_i2cslave_to_avlmm_bridge.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_avl_mst_intf_gen.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_clk_cnt.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_condt_det.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_databuffer.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_rxshifter.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_slvfsm.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_spksupp.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_txout.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+altera_i2cslave_to_avlmm_bridge_1910/sim/altr_i2c_txshifter.v,VERILOG,,altera_i2cslave_to_avlmm_bridge,false
+#
+# Map from instance-path to kind of module
+instances:
+instancePath,module
+i2c_bfm.i2cslave_to_avlmm_bridge_0,altera_i2cslave_to_avlmm_bridge
