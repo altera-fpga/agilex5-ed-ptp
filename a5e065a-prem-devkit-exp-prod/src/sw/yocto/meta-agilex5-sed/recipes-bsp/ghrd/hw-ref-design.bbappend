@@ -1,6 +1,6 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-sha256sum_PTP_2P25G = "dae34ede92a8aecf4d79dc2180949e67c9053ce18c6499b5ab5826a20b37a13f"
+sha256sum_PTP_2P25G = "0291a78e5b9a9b617806f3cdb5bb8d56108ec907bd306300a23e0f409098f28f"
 
 SRC_URI:agilex5_dk_a5e065bb32aes1_b0 = "\
                 file://${MACHINE}_gsrd_ghrd_${SOLUTION}.core.rbf;name=agilex_sm_gsrd_core \
