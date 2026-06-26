@@ -126,22 +126,9 @@ $DESIGN_DIR/custom_rtl/qsfp_contlr/poller_fsm.sv
 
 $DESIGN_DIR/custom_rtl/components_8chs/components_pkg.sv
 $DESIGN_DIR/custom_rtl/components_8chs/tx_dma_fifo.sv
-$DESIGN_DIR/custom_rtl/components_8chs/ts_pack.sv
 $DESIGN_DIR/custom_rtl/components_8chs/ts_chs_compl.sv
-$DESIGN_DIR/custom_rtl/components_8chs/s10_memory.sv
 $DESIGN_DIR/custom_rtl/components_8chs/rx_dma_fifo.sv
-$DESIGN_DIR/custom_rtl/components_8chs/period_bus_sync.sv
-$DESIGN_DIR/custom_rtl/components_8chs/parameter_scfifo.sv
-$DESIGN_DIR/custom_rtl/components_8chs/packet_mux_pd_8chs.sv
-$DESIGN_DIR/custom_rtl/components_8chs/packet_mux.sv
-$DESIGN_DIR/custom_rtl/components_8chs/packet_demux_pd_8chs.sv
-$DESIGN_DIR/custom_rtl/components_8chs/packet_demux.sv
-$DESIGN_DIR/custom_rtl/components_8chs/dc_fifo_param.sv
-$DESIGN_DIR/custom_rtl/components_8chs/clock_bus.sv
-$DESIGN_DIR/custom_rtl/components_8chs/cdc_toggle_synchronizer.sv
-$DESIGN_DIR/custom_rtl/components_8chs/cdc_synchronizer.sv
 $DESIGN_DIR/custom_rtl/components_8chs/cdc_packet_fifo.sv
-$DESIGN_DIR/custom_rtl/components_8chs/cdc_avmm_sync_v2.sv
 
 $DESIGN_DIR/custom_rtl/tod_subsys/intel_eth_gts_ptp_mtod_top.sv
 $DESIGN_DIR/custom_rtl/tod_subsys/intel_eth_gts_ptp_stod_top.sv
