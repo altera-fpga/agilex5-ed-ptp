@@ -17,45 +17,136 @@ class sm_ptp_basic_seq extends uvm_sequence;
 
   `uvm_object_utils(sm_ptp_basic_seq)
 
-  logic [30:0] tx_port0_const_delay;
-  logic        tx_port0_const_delay_sign;
-  logic [30:0] tx_port0_apulse_offset;
-  logic        tx_port0_apulse_offset_sign;
-  logic [19:0] tx_port0_apulse_wdelay;
-  logic [28:0] tx_port0_apulse_time;
-  logic [31:0] tx_port0_tam_adjust;
-  logic [31:0] tx_port0_tam_adjust_2c;
-  logic [31:0] tx_port0_extra_latency;
+logic [31:0]    wdata;
 
-  logic [30:0] rx_port0_const_delay;
-  logic        rx_port0_const_delay_sign;
-  logic [30:0] rx_port0_apulse_offset;
-  logic        rx_port0_apulse_offset_sign;
-  logic [19:0] rx_port0_apulse_wdelay;
-  logic [28:0] rx_port0_apulse_time;
-  logic [31:0] rx_port0_tam_adjust;
-  logic [31:0] rx_port0_tam_adjust_2c;
-  logic [31:0] rx_port0_extra_latency;
+// NEWLY ADDED for FEC
+int fl,pl,ln,vl;
+bit    pl_init;
+bit [1:0] fec_init;
+string rate_init;
+bit    fl_init;
+bit [31:0] pl_fl_map;
 
-  logic [30:0] tx_port1_const_delay;
-  logic        tx_port1_const_delay_sign;
-  logic [30:0] tx_port1_apulse_offset;
-  logic        tx_port1_apulse_offset_sign;
-  logic [19:0] tx_port1_apulse_wdelay;
-  logic [28:0] tx_port1_apulse_time;
-  logic [31:0] tx_port1_tam_adjust;
-  logic [31:0] tx_port1_tam_adjust_2c;
-  logic [31:0] tx_port1_extra_latency;
-				  
-  logic [30:0] rx_port1_const_delay;
-  logic        rx_port1_const_delay_sign;
-  logic [30:0] rx_port1_apulse_offset;
-  logic        rx_port1_apulse_offset_sign;
-  logic [19:0] rx_port1_apulse_wdelay;
-  logic [28:0] rx_port1_apulse_time;
-  logic [31:0] rx_port1_tam_adjust;
-  logic [31:0] rx_port1_tam_adjust_2c;
-  logic [31:0] rx_port1_extra_latency;
+logic      [2:0]     this_var;
+logic      [4:0]     VL;
+logic      [27:0]    ui;
+
+// avmm
+logic [31:0]    rdata_ptp_init;
+logic [31:0]    wdata_ptp_init;
+// TX
+logic         [30:0] port0_tx_const_delay;
+logic                port0_tx_const_delay_sign;
+logic [PL-1:0][30:0] port0_tx_apulse_offset;
+logic [PL-1:0]       port0_tx_apulse_offset_sign;
+logic [PL-1:0][19:0] port0_tx_apulse_wdelay;
+logic [PL-1:0][28:0] port0_tx_apulse_time;
+logic         [28:0] port0_tx_apulse_time_max;
+logic         [2:0]  port0_tx_ref_pl;
+logic [20-1:0][31:0] port0_tx_am_actual_time;
+logic         [31:0] port0_tx_am_actual_time_max;
+logic         [31:0] port0_tx_tam_adjust;
+logic         [31:0] port0_tx_tam_adjust_2c;
+logic         [30:0] port0_tx_external_phy_delay;
+
+logic         [30:0] port1_tx_const_delay;
+logic                port1_tx_const_delay_sign;
+logic [PL-1:0][30:0] port1_tx_apulse_offset;
+logic [PL-1:0]       port1_tx_apulse_offset_sign;
+logic [PL-1:0][19:0] port1_tx_apulse_wdelay;
+logic [PL-1:0][28:0] port1_tx_apulse_time;
+logic         [28:0] port1_tx_apulse_time_max;
+logic         [2:0]  port1_tx_ref_pl;
+logic [20-1:0][31:0] port1_tx_am_actual_time;
+logic         [31:0] port1_tx_am_actual_time_max;
+logic         [31:0] port1_tx_tam_adjust;
+logic         [31:0] port1_tx_tam_adjust_2c;
+logic         [30:0] port1_tx_external_phy_delay;
+
+logic         [30:0] tx_pma_delay_ui;
+
+logic         [30:0] port0_tx_pma_delay_ns_fns;
+logic         [31:0] port0_tx_extra_latency;
+logic         [30:0] port1_tx_pma_delay_ns_fns;
+logic         [31:0] port1_tx_extra_latency;
+
+logic [20-1:0][31:0] tx_vl_offset;
+// RX
+logic                port0_rx_fec_locked;
+logic                port0_rx_pcs_locked;
+logic [PLDIF_LANES-1:0][14:0] port0_rx_fec_cw_pos_fl;
+logic [PLDIF_LANES-1:0][30:0] port0_rx_xcvr_if_pulse_adj;
+logic [PLDIF_LANES-1:0]       port0_rx_xcvr_if_pulse_adj_sign;
+logic         [30:0] port0_rx_const_delay;
+logic                port0_rx_const_delay_sign;
+logic [PL-1:0][30:0] port0_rx_apulse_offset;
+logic [PL-1:0]       port0_rx_apulse_offset_sign;
+logic [PL-1:0][19:0] port0_rx_apulse_wdelay;
+logic [PL-1:0][28:0] port0_rx_apulse_time;
+logic         [28:0] port0_rx_apulse_time_max;
+logic [20-1:0][30:0] port0_rx_spulse_offset;
+logic [20-1:0]       port0_rx_spulse_offset_sign;
+logic         [2:0]  port0_rx_fl_local_pl;
+logic [20-1:0][1:0]  port0_rx_vl_local_pl; // Not used
+logic         [2:0]  port0_rx_ref_pl;
+logic         [3:0]  port0_rx_ref_fl;
+logic         [4:0]  port0_rx_ref_vl;
+logic [20-1:0][31:0] port0_rx_am_actual_time;
+logic         [31:0] port0_rx_am_actual_time_max;
+logic         [31:0] port0_rx_tam_adjust;
+logic         [31:0] port0_rx_tam_adjust_2c;
+logic         [30:0] port0_rx_external_phy_delay;
+logic         [30:0] port0_rx_pma_delay_ns_fns;
+logic         [31:0] port0_rx_extra_latency;
+logic         [6:0]  port0_rx_pcs_bitslip_cnt;
+logic         [6:0]  port0_rx_pcs_dlpulse_cnt;
+logic                port0_rx_pcs_dlpulse_aligned;
+logic         [34:0] port0_bslip_p_dlpulse;
+
+
+logic                port1_rx_fec_locked;
+logic                port1_rx_pcs_locked;
+logic [PLDIF_LANES-1:0][14:0] port1_rx_fec_cw_pos_fl;
+logic [PLDIF_LANES-1:0][30:0] port1_rx_xcvr_if_pulse_adj;
+logic [PLDIF_LANES-1:0]       port1_rx_xcvr_if_pulse_adj_sign;
+logic         [30:0] port1_rx_const_delay;
+logic                port1_rx_const_delay_sign;
+logic [PL-1:0][30:0] port1_rx_apulse_offset;
+logic [PL-1:0]       port1_rx_apulse_offset_sign;
+logic [PL-1:0][19:0] port1_rx_apulse_wdelay;
+logic [PL-1:0][28:0] port1_rx_apulse_time;
+logic         [28:0] port1_rx_apulse_time_max;
+logic [20-1:0][30:0] port1_rx_spulse_offset;
+logic [20-1:0]       port1_rx_spulse_offset_sign;
+logic         [2:0]  port1_rx_fl_local_pl;
+logic [20-1:0][1:0]  port1_rx_vl_local_pl; // Not used
+logic         [2:0]  port1_rx_ref_pl;
+logic         [3:0]  port1_rx_ref_fl;
+logic         [4:0]  port1_rx_ref_vl;
+logic [20-1:0][31:0] port1_rx_am_actual_time;
+logic         [31:0] port1_rx_am_actual_time_max;
+logic         [31:0] port1_rx_tam_adjust;
+logic         [31:0] port1_rx_tam_adjust_2c;
+logic         [30:0] port1_rx_external_phy_delay;
+logic         [30:0] port1_rx_pma_delay_ns_fns;
+logic         [31:0] port1_rx_extra_latency;
+logic         [6:0]  port1_rx_pcs_bitslip_cnt;
+logic         [6:0]  port1_rx_pcs_dlpulse_cnt;
+logic                port1_rx_pcs_dlpulse_aligned;
+logic         [34:0] port1_bslip_p_dlpulse;
+
+logic [20-1:0][31:0] rx_vl_offset;
+logic         [30:0] rx_pma_delay_ui;
+logic [3:0]          xcvr_sel;
+logic [19:0]         xcvr_addr;
+logic [31:0]         xcvr_addr_int;
+logic [27:0]         ui_xcvr100g;
+logic [27:0]         ui_xcvr50g;
+logic [27:0]         ui_xcvr25g_kp;
+logic [27:0]         ui_xcvr25g;
+logic [27:0]         ui_xcvr10g;
+logic [7:0]          inst_num;
+
 
   // ----------------------------------------------------------------------
   // ----------------------------------------------------------------------
@@ -68,17 +159,812 @@ class sm_ptp_basic_seq extends uvm_sequence;
   virtual task body();
     super.body();
 
+  pl_init = 1;
+  fec_init = 2;
+  `ifdef SM_PTP_CFG_25G 
+  begin
+    rate_init = "25G";
+    $display("\n---25G PTP SEQ -----");
+  end
+  `else 
+  begin
+    rate_init = "10G";
+    $display("\n---10G PTP SEQ -----");
+  end 
+  `endif
+ 
+  fl_init = 1;
+  pl_fl_map = 0;
+
+    
+
     wait_for_eth_ready();
-    // --------------------------------------------------------------------
-    wait_for_data_offset_valid();
-    ptp_tx_initialise();
-    ptp_rx_initialise();
-    notify_soft_ptp_user_cfg_done();
-    wait_for_ptp_ready();
-    // --------------------------------------------------------------------
+    //ptp_initialize(LANE_NUM,RSFEC_ENABLED,DATA_RATE,PLDIF_LANES,PL_FL_MAP,PORT_NUM)
+    ptp_initialize(pl_init,fec_init,rate_init,fl_init);
     enable_user_client_chkr(0);
     enable_user_client_chkr(1);
   endtask: body
+
+// Call this task during power up and whenever link down
+task ptp_initialize;
+    input int    pl_init;
+    input int    fec_init;
+    input string rate_init;
+    input int    fl_init;
+    bit[31:0] pl_fl_map;
+begin
+    $display("\n---PTP User Flow started -----");
+    determine_var(pl_init,fec_init,rate_init,fl_init);
+    determine_ui(this_var);
+    determine_VL(rate_init);
+    determine_pma_delay_ui(this_var);
+    pl_fl_map   = fl_init / pl_init;
+    ptp_tx_initialize(pl_init,rate_init,fec_init);
+    ptp_rx_initialize(rate_init,fec_init,pl_init,fl_init,pl_fl_map);
+    $display("---PTP User Flow completed -----");
+end
+endtask
+
+
+task determine_var;
+    input int    pl_dv;
+    input int    fec_dv;
+    input string rate_dv;
+    input int    fl_dv; 
+begin
+    if ((rate_dv == "400G" && pl_dv == 4) ||
+        (rate_dv == "200G" && pl_dv == 2) ||
+        (rate_dv == "100G" && pl_dv == 1))
+        this_var = is_var_xcvr100g;
+    else if ((rate_dv == "400G" && pl_dv == 8) ||
+             (rate_dv == "200G" && pl_dv == 4) ||
+             (rate_dv == "100G" && pl_dv == 2) || 
+             (rate_dv == "50G"  && pl_dv == 1))
+        this_var = is_var_xcvr50g;
+    else if ((rate_dv == "200G" && pl_dv == 8            ) ||
+             (rate_dv == "100G" && pl_dv == 4 && fec_dv == 3) ||
+             (rate_dv == "50G"  && pl_dv == 2 && fec_dv == 3))
+        this_var = is_var_xcvr25g_kp;
+    else if ((rate_dv == "100G" && pl_dv == 4 && fec_dv != 3) ||
+             (rate_dv == "50G"  && pl_dv == 2 && fec_dv != 3) ||
+             (rate_dv == "25G"  && pl_dv == 1) )
+        this_var = is_var_xcvr25g; 
+    else if (rate_dv == "10G" && pl_dv == 1) 
+        this_var = is_var_xcvr10g;
+    else
+        this_var = is_var_undefined;
+    $display("variant: %0d", this_var);
+end
+endtask
+
+task determine_ui;
+    input [2:0]  this_var; 
+begin
+    ui_xcvr100g    = 28'h0268CF3;
+    ui_xcvr50g     = 28'h04D19EC;
+    ui_xcvr25g_kp  = 28'h09A33CD;
+    ui_xcvr25g     = 28'h09EE00A;
+    ui_xcvr10g     = 28'h18D3019;
+    
+    if (this_var == is_var_xcvr100g)        ui = ui_xcvr100g;
+    else if (this_var == is_var_xcvr50g)    ui = ui_xcvr50g;
+    else if (this_var == is_var_xcvr25g_kp) ui = ui_xcvr25g_kp;
+    else if (this_var == is_var_xcvr25g)    ui = ui_xcvr25g;
+    else if (this_var == is_var_xcvr10g)    ui = ui_xcvr10g;
+    else                                    ui = ui_xcvr10g;
+    $display("ui     : 0x%0X", ui);
+end
+endtask
+
+
+task determine_VL;
+    input string  rate_vl; 
+begin
+    if      (rate_vl == "400G") VL = 16;
+    else if (rate_vl == "200G") VL = 8;
+    else if (rate_vl == "100G") VL = 20;
+    else if (rate_vl == "50G")  VL = 4;
+    else if (rate_vl == "25G")  VL = 1;
+    else if (rate_vl == "10G")  VL = 1;
+    else                     VL = 1;
+    $display("VL     : %0d", VL);
+end
+endtask
+
+task determine_pma_delay_ui;
+    input [2:0]  this_var; 
+begin
+    if (XCVR == 1) begin // FHT
+        if (this_var == is_var_xcvr100g) begin
+            tx_pma_delay_ui = 1094;
+            rx_pma_delay_ui = 1037;
+        end
+        else if (this_var == is_var_xcvr50g) begin
+            tx_pma_delay_ui = 552;
+            rx_pma_delay_ui = 589;
+        end
+        else if ((this_var == is_var_xcvr25g) || (this_var == is_var_xcvr25g_kp)) begin
+            tx_pma_delay_ui = 276;
+            rx_pma_delay_ui = 295;
+        end
+        else if (this_var == is_var_xcvr10g) begin
+            // No such variant
+            tx_pma_delay_ui = 0;
+            rx_pma_delay_ui = 0;
+        end
+        else begin
+            // Undefined variant
+            tx_pma_delay_ui = 0;
+            rx_pma_delay_ui = 0;
+        end
+    end
+    else if (XCVR == 0) begin // FGT
+        if (this_var == is_var_xcvr100g) begin
+            // No such variant
+            tx_pma_delay_ui = 0;
+            rx_pma_delay_ui = 0;
+        end
+        else if (this_var == is_var_xcvr50g) begin
+            tx_pma_delay_ui = tx_pma_delay_ui_fgt_50g; // fast 63; slow 158
+            rx_pma_delay_ui = rx_pma_delay_ui_fgt_50g; // fast 193; slow 176
+        end
+        else if ((this_var == is_var_xcvr25g) || (this_var == is_var_xcvr25g_kp)) begin
+            tx_pma_delay_ui = tx_pma_delay_ui_fgt_10g25g; // fast 33; slow 80
+            rx_pma_delay_ui = rx_pma_delay_ui_fgt_10g25g; // fast 96; slow 88
+        end
+        else if (this_var == is_var_xcvr10g) begin
+            // pma_delay_ui same as 25g, ui value is different
+            tx_pma_delay_ui = tx_pma_delay_ui_fgt_10g25g; // fast 33; slow 80
+            rx_pma_delay_ui = rx_pma_delay_ui_fgt_10g25g; // fast 96; slow 88
+        end
+        else begin
+            // Undefined variant
+            tx_pma_delay_ui = 0;
+            rx_pma_delay_ui = 0;
+        end
+    end
+    $display("tx_pma_delay_ui : %0d", tx_pma_delay_ui);
+    $display("rx_pma_delay_ui : %0d", rx_pma_delay_ui);
+end
+endtask
+
+task ptp_tx_initialize;
+    input int    pl_tx;
+    input string rate_tx;
+    input int    fec_tx;
+begin
+    $display("%0t Info: PORT0 TX PTP initialization Started.", $time);
+    port0_wait_tx_ptp_offset_data_valid();
+    port0_read_tx_ptp_offset_data(pl_tx);
+    port0_determine_tx_ref_lane(pl_tx);
+    port0_calculate_tx_offsets(rate_tx,fec_tx,pl_tx);
+    port0_write_tx_ref_lane();
+    port0_write_calculated_tx_offsets(rate_tx);
+    port0_notify_soft_ptp_tx_user_cfg_done();
+    port0_wait_tx_ptp_ready();
+    $display("%0t Info: PORT0 TX PTP initialization Done.", $time);
+    if (`SM_PTP_NUM_PORTS == 2) begin
+       $display("%0t Info: PORT1 TX PTP initialization Started.", $time);
+       port1_wait_tx_ptp_offset_data_valid();
+       port1_read_tx_ptp_offset_data(pl_tx);
+       port1_determine_tx_ref_lane(pl_tx);
+       port1_calculate_tx_offsets(rate_tx,fec_tx,pl_tx);
+       port1_write_tx_ref_lane();
+       port1_write_calculated_tx_offsets(rate_tx);
+       port1_notify_soft_ptp_tx_user_cfg_done();
+       port1_wait_tx_ptp_ready();
+       $display("%0t Info: PORT1 TX PTP initialization Done.", $time);
+    end
+    
+end
+endtask
+
+task port0_wait_tx_ptp_offset_data_valid; // no variables
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+     $display("%0t Info: Wait for PORT0 TX PTP offset data valid assertion.", $time);
+     while (data[0][0] !== 'b1) begin
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h30),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+      #50ns;
+      end
+     $display("%0t Info: PORT0 TX PTP offset data valid assertion Done.", $time);
+end
+endtask
+
+task port1_wait_tx_ptp_offset_data_valid; // no variables
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+     $display("%0t Info: Wait for PORT1 TX PTP offset data valid assertion.", $time);
+     while (data[0][0] !== 'b1) begin
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+      #50ns;
+      end
+     $display("%0t Info: PORT1 TX PTP offset data valid assertion Done.", $time);
+end
+endtask
+
+
+task port0_read_tx_ptp_offset_data; // Yes variables
+    input int    pl_tx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT0 Read TX raw offset data.", $time);
+    // const_delay
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'hF0),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+
+    port0_tx_const_delay      = data[0][30:0];
+    port0_tx_const_delay_sign = data[0][31];
+    
+    // offset, wire_delay, time of each lane
+    for (pl=0; pl<pl_tx; pl++) begin
+       axi_master_read(
+          .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h100),
+          .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+          .burst_length(1),
+          .data(data)
+       );
+       port0_tx_apulse_offset     [pl]   = data[0][30:0];
+       port0_tx_apulse_offset_sign[pl]   = data[0][31];
+    
+       axi_master_read(
+          .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h110),
+          .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+          .burst_length(1),
+          .data(data)
+       );
+       port0_tx_apulse_wdelay     [pl]   = data[0][19:0];
+
+       axi_master_read(
+          .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h108),
+          .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+          .burst_length(1),
+          .data(data)
+       );
+       port0_tx_apulse_time       [pl]   = {1'b0, data[0][27:0]};
+    end
+    $display("%0t Info: PORT0 Read TX raw offset data done.", $time);
+end
+endtask
+
+task port1_read_tx_ptp_offset_data; // Yes variables
+    input int    pl_tx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT1 Read TX raw offset data.", $time);
+    // const_delay
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'hF0),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+
+    port1_tx_const_delay      = data[0][30:0];
+    port1_tx_const_delay_sign = data[0][31];
+    
+    // offset, wire_delay, time of each lane
+    for (pl=0; pl<pl_tx; pl++) begin
+       axi_master_read(
+          .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h100),
+          .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+          .burst_length(1),
+          .data(data)
+       );
+       port1_tx_apulse_offset     [pl]   = data[0][30:0];
+       port1_tx_apulse_offset_sign[pl]   = data[0][31];
+    
+       axi_master_read(
+          .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h110),
+          .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+          .burst_length(1),
+          .data(data)
+       );
+       port1_tx_apulse_wdelay     [pl]   = data[0][19:0];
+
+       axi_master_read(
+          .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h108),
+          .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+          .burst_length(1),
+          .data(data)
+       );
+       port1_tx_apulse_time       [pl]   = {1'b0, data[0][27:0]};
+    end
+    $display("%0t Info: PORT1 Read TX raw offset data done.", $time);
+end
+endtask
+
+
+task port0_determine_tx_ref_lane; // Yes variables
+    input int  pl_tx; 
+begin
+    $display("%0t Info: PORT0 Determine TX reference lane.", $time);
+    // a) Detect rollover of async pulse time
+    ptp_max_apluse_time(pl_tx, port0_tx_apulse_time, port0_tx_apulse_time_max);
+    for (pl=0; pl<pl_tx; pl++) begin
+        if (port0_tx_apulse_time_max - port0_tx_apulse_time[pl] > 29'h01F4_0000)  begin // > 500ns
+            if (port0_tx_apulse_time_max[27:24] == 4'hF)
+               port0_tx_apulse_time[pl] = port0_tx_apulse_time[pl] + 29'h1000_0000;
+            else
+               port0_tx_apulse_time[pl] = port0_tx_apulse_time[pl] + 29'h0A00_0000;
+        end
+    end
+    
+    // b) Calculate actual time of TX Alignment Marker at TX PMA parallel data interface
+    for (pl=0; pl<pl_tx; pl++) begin
+        port0_tx_am_actual_time[pl]  =    (port0_tx_apulse_time[pl])
+                                  + (port0_tx_apulse_offset_sign[pl] ? -port0_tx_apulse_offset[pl] : port0_tx_apulse_offset[pl])
+                                  - (port0_tx_apulse_wdelay[pl]);
+    end
+    // c) Determine Reference Lane
+    if (pl_tx == 1) begin
+        port0_tx_ref_pl             = 0;
+        port0_tx_am_actual_time_max = port0_tx_am_actual_time[0];
+    end 
+    else begin
+        ptp_max_ref_ln(pl_tx, port0_tx_am_actual_time, port0_tx_am_actual_time_max, port0_tx_ref_pl);
+    end
+    $display("%0t Info: PORT0 Determine TX reference lane done.", $time);
+end
+endtask
+
+
+task port1_determine_tx_ref_lane; // Yes variables
+    input int  pl_tx; 
+begin
+    $display("%0t Info: PORT1 Determine TX reference lane.", $time);
+    // a) Detect rollover of async pulse time
+    ptp_max_apluse_time(pl_tx, port1_tx_apulse_time, port1_tx_apulse_time_max);
+    for (pl=0; pl<pl_tx; pl++) begin
+        if (port1_tx_apulse_time_max - port1_tx_apulse_time[pl] > 29'h01F4_0000)  begin // > 500ns
+            if (port1_tx_apulse_time_max[27:24] == 4'hF)
+               port1_tx_apulse_time[pl] = port1_tx_apulse_time[pl] + 29'h1000_0000;
+            else
+               port1_tx_apulse_time[pl] = port1_tx_apulse_time[pl] + 29'h0A00_0000;
+        end
+    end
+    
+    // b) Calculate actual time of TX Alignment Marker at TX PMA parallel data interface
+    for (pl=0; pl<pl_tx; pl++) begin
+        port1_tx_am_actual_time[pl]  =    (port1_tx_apulse_time[pl])
+                                  + (port1_tx_apulse_offset_sign[pl] ? -port1_tx_apulse_offset[pl] : port1_tx_apulse_offset[pl])
+                                  - (port1_tx_apulse_wdelay[pl]);
+    end
+    // c) Determine Reference Lane
+    if (pl_tx == 1) begin
+        port1_tx_ref_pl             = 0;
+        port1_tx_am_actual_time_max = port1_tx_am_actual_time[0];
+    end 
+    else begin
+        ptp_max_ref_ln(pl_tx, port1_tx_am_actual_time, port1_tx_am_actual_time_max, port1_tx_ref_pl);
+    end
+    $display("%0t Info: PORT1 Determine TX reference lane done.", $time);
+end
+endtask
+
+task ptp_max_apluse_time; // No variables
+    input  [4:0]          lane_num_max;
+    input  [16-1:0][28:0] apulse_time;
+    output [28:0]         apulse_time_max;
+begin
+    apulse_time_max  = apulse_time[0];
+    for (ln=1; ln<lane_num_max; ln++) begin
+        if (apulse_time[ln] > apulse_time_max) begin
+            apulse_time_max = apulse_time[ln];
+        end
+    end
+end
+endtask
+
+task ptp_max_ref_ln; // No variables
+    input  [4:0]          lane_num_max;
+    input  [20-1:0][31:0] am_actual_time;
+    output [31:0]         am_actual_time_max;
+    output [4:0]          ref_lane_idx;
+begin
+    ref_lane_idx        = 0;
+    am_actual_time_max  = am_actual_time[0];
+    for (ln=1; ln<lane_num_max; ln++) begin
+        // Both negatives
+        if (am_actual_time[ln][31] && am_actual_time_max[31]) begin
+            if (am_actual_time[ln] > am_actual_time_max) begin
+                ref_lane_idx       = ln;
+                am_actual_time_max = am_actual_time[ln];
+            end
+        end
+        // One positive, one negative
+        else if (!am_actual_time[ln][31] && am_actual_time_max[31]) begin
+            ref_lane_idx       = ln;
+            am_actual_time_max = am_actual_time[ln];
+        
+       end
+       // One negative, one positive
+       else if (am_actual_time[ln][31] && !am_actual_time_max[31]) begin
+           // No change
+       end
+       // Both positives
+       else begin
+           if (am_actual_time[ln] > am_actual_time_max) begin
+               ref_lane_idx       = ln;
+               am_actual_time_max = am_actual_time[ln];
+            end
+       end
+    end
+end
+endtask
+
+
+task port0_calculate_tx_offsets; //  Yes variables
+    input string  rate_tx;
+    input int     fec_tx;
+    input int     pl_tx; 
+begin
+    $display("%0t Info: PORT0 Calculate TX offsets", $time);
+    // a) Calculate TX TAM adjust (twos complement)
+    port0_tx_tam_adjust     =   (port0_tx_const_delay_sign              ? -port0_tx_const_delay              : port0_tx_const_delay)
+                        + (port0_tx_apulse_offset_sign[port0_tx_ref_pl] ? -port0_tx_apulse_offset[port0_tx_ref_pl] : port0_tx_apulse_offset[port0_tx_ref_pl])
+                        - (port0_tx_apulse_wdelay[port0_tx_ref_pl]);
+        
+    port0_tx_tam_adjust_2c  = port0_tx_tam_adjust;
+    
+    // b) Calculate TX extra latency
+    port0_tx_pma_delay_ns_fns     = 43'((tx_pma_delay_ui * ui)) >> (28 - 16);
+    port0_tx_external_phy_delay   = 0;
+    port0_tx_extra_latency[30:0]  = port0_tx_pma_delay_ns_fns + port0_tx_external_phy_delay;
+    port0_tx_extra_latency[31]    = 1'b0;
+    
+    // c) Calculate TX virtual lane offsets (non 10G/25G only)
+    if (rate_tx == "25G" || rate_tx == "10G") begin // 10G/25G - this step is skipped. 
+        tx_vl_offset = '{default:0};
+    end
+    else begin
+        // KP-FEC/LL-FEC variants
+        if (fec_tx == 3 || fec_tx == 4) begin
+            for (vl=0; vl<VL; vl++) begin
+                tx_vl_offset[vl]    = 44'((vl - (vl % pl_tx)) / pl_tx * (68 * ui)) >> (28 - 16);
+            end
+        end
+        // KR-FEC variants
+        else if (fec_tx == 2) begin
+            for (vl=0; vl<VL; vl++) begin
+                tx_vl_offset[vl]    = 44'((vl - (vl % pl_tx)) / pl_tx * 66 * ui) >> (28 - 16);
+            end
+        end
+        // No FEC variants
+        else begin 
+            for (vl=0; vl<VL; vl++) begin
+                tx_vl_offset[vl]    = 44'((vl - (vl % pl_tx)) / pl_tx * 1 * ui) >> (28 - 16);
+            end
+        end
+    end
+    $display("%0t Info: PORT0 Calculate TX offsets done", $time);
+end
+endtask
+
+
+task port1_calculate_tx_offsets; //  Yes variables
+    input string  rate_tx;
+    input int     fec_tx;
+    input int     pl_tx; 
+begin
+    $display("%0t Info: PORT1 Calculate TX offsets", $time);
+    // a) Calculate TX TAM adjust (twos complement)
+    port1_tx_tam_adjust     =   (port1_tx_const_delay_sign              ? -port1_tx_const_delay              : port1_tx_const_delay)
+                        + (port1_tx_apulse_offset_sign[port1_tx_ref_pl] ? -port1_tx_apulse_offset[port1_tx_ref_pl] : port1_tx_apulse_offset[port1_tx_ref_pl])
+                        - (port1_tx_apulse_wdelay[port1_tx_ref_pl]);
+        
+    port1_tx_tam_adjust_2c  = port1_tx_tam_adjust;
+    
+    // b) Calculate TX extra latency
+    port1_tx_pma_delay_ns_fns     = 43'((tx_pma_delay_ui * ui)) >> (28 - 16);
+    port1_tx_external_phy_delay   = 0;
+    port1_tx_extra_latency[30:0]  = port1_tx_pma_delay_ns_fns + port1_tx_external_phy_delay;
+    port1_tx_extra_latency[31]    = 1'b0;
+    
+    // c) Calculate TX virtual lane offsets (non 10G/25G only)
+    if (rate_tx == "25G" || rate_tx == "10G") begin // 10G/25G - this step is skipped. 
+        tx_vl_offset = '{default:0};
+    end
+    else begin
+        // KP-FEC/LL-FEC variants
+        if (fec_tx == 3 || fec_tx == 4) begin
+            for (vl=0; vl<VL; vl++) begin
+                tx_vl_offset[vl]    = 44'((vl - (vl % pl_tx)) / pl_tx * (68 * ui)) >> (28 - 16);
+            end
+        end
+        // KR-FEC variants
+        else if (fec_tx == 2) begin
+            for (vl=0; vl<VL; vl++) begin
+                tx_vl_offset[vl]    = 44'((vl - (vl % pl_tx)) / pl_tx * 66 * ui) >> (28 - 16);
+            end
+        end
+        // No FEC variants
+        else begin 
+            for (vl=0; vl<VL; vl++) begin
+                tx_vl_offset[vl]    = 44'((vl - (vl % pl_tx)) / pl_tx * 1 * ui) >> (28 - 16);
+            end
+        end
+    end
+    $display("%0t Info: PORT1 Calculate TX offsets done", $time);
+end
+endtask
+
+task port0_write_tx_ref_lane; // No variables
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    $display("%0t Info: PORT0 Program determined TX reference lane into IP", $time);
+    //avmm_read({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);// 80C
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h0C),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+    data[0] = data[0] | {29'h0000_0000, port0_tx_ref_pl};
+    //avmm_write({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, wdata_ptp_init);
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h0C),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+
+    $display("%0t Info: PORT0 Program determined TX reference lane into IP done", $time);
+end
+endtask
+
+task port1_write_tx_ref_lane; // No variables
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    $display("%0t Info: PORT1 Program determined TX reference lane into IP", $time);
+    //avmm_read({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);// 80C
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h0C),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+    data[0] = data[0] | {29'h0000_0000, port1_tx_ref_pl};
+    //avmm_write({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, wdata_ptp_init);
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h0C),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+
+    $display("%0t Info: PORT1 Program determined TX reference lane into IP done", $time);
+end
+endtask
+
+
+task port0_write_calculated_tx_offsets; // Yes Variables
+    input string rate_tx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+
+    wdata = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+begin
+    $display("%0t Info: PORT0 Program calculated TX offsets into IP", $time);
+    
+    //Write TX virtual lane offsets
+    if (rate_tx == "25G" || rate_tx == "10G") begin
+        // 10G/25G - this step is skipped. 
+    end
+    else begin
+        for (vl=0; vl<VL; vl++) begin
+            //avmm_write({inst_num, (PCS_TX_PTP_VL_OFFSET_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, tx_vl_offset[vl]);
+        end
+    end
+    // Write TX extra latency
+    //avmm_write({inst_num, (MAC_TX_EXTRA_LATENCY_ADDR + 24'(port_num << 16))}, tx_extra_latency); // 500E0
+    wdata[0] = port0_tx_extra_latency;
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT0_HARD_IP_EMAC + 'hE0),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .data(wdata), .burst_length(1), .wstrb(wstrb)
+    );
+    // Write TX TAM adjust
+    //avmm_write({inst_num, (PTP_TX_TAM_ADJUST_ADDR + 24'(port_num << 16))}, tx_tam_adjust_2c);// 800
+    wdata[0] = port0_tx_tam_adjust_2c;
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(wdata),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT0 Program calculated TX offsets into IP done", $time);
+end
+endtask
+
+
+task port1_write_calculated_tx_offsets; // Yes Variables
+    input string rate_tx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+
+    wdata = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+begin
+    $display("%0t Info: PORT1 Program calculated TX offsets into IP", $time);
+    
+    //Write TX virtual lane offsets
+    if (rate_tx == "25G" || rate_tx == "10G") begin
+        // 10G/25G - this step is skipped. 
+    end
+    else begin
+        for (vl=0; vl<VL; vl++) begin
+            //avmm_write({inst_num, (PCS_TX_PTP_VL_OFFSET_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, tx_vl_offset[vl]);
+        end
+    end
+    // Write TX extra latency
+    //avmm_write({inst_num, (MAC_TX_EXTRA_LATENCY_ADDR + 24'(port_num << 16))}, tx_extra_latency); // 500E0
+    wdata[0] = port1_tx_extra_latency;
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT1_HARD_IP_EMAC + 'hE0),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .data(wdata), .burst_length(1), .wstrb(wstrb)
+    );
+    // Write TX TAM adjust
+    //avmm_write({inst_num, (PTP_TX_TAM_ADJUST_ADDR + 24'(port_num << 16))}, tx_tam_adjust_2c);// 800
+    wdata[0] = port1_tx_tam_adjust_2c;
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(wdata),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT1 Program calculated TX offsets into IP done", $time);
+end
+endtask
+
+task port0_notify_soft_ptp_tx_user_cfg_done; // No variable
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    $display("%0t Info: PORT0 TX user flow configuration is completed. Notify soft IP.", $time);
+    //avmm_read({inst_num, (PTP_TX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); // 814
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h14),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+    data[0] = data[0] | 32'h0000_0001;
+    //avmm_write({inst_num, (PTP_TX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, wdata_ptp_init);
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h14),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT0 TX user flow configuration is completed. Notify soft IP done.", $time);
+end
+endtask
+
+
+task port1_notify_soft_ptp_tx_user_cfg_done; // No variable
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    $display("%0t Info: PORT1 TX user flow configuration is completed. Notify soft IP.", $time);
+    //avmm_read({inst_num, (PTP_TX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); // 814
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h14),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+    data[0] = data[0] | 32'h0000_0001;
+    //avmm_write({inst_num, (PTP_TX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, wdata_ptp_init);
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h14),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT1 TX user flow configuration is completed. Notify soft IP done.", $time);
+end
+endtask
+
+task port0_wait_tx_ptp_ready; // No variable
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT0 Wait for TX PTP ready assertion.", $time);
+    //avmm_read({inst_num, (PTP_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); // 830
+    while (data[0][2] !== 'b1) begin
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h30),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+      #100ns;
+    end
+    $display("%0t Info: PORT0 Wait for TX PTP ready assertion done.", $time);
+end
+endtask
+
+task port1_wait_tx_ptp_ready; // No variable
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT1 Wait for TX PTP ready assertion.", $time);
+    //avmm_read({inst_num, (PTP_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); // 830
+    while (data[0][2] !== 'b1) begin
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+      #100ns;
+    end
+    $display("%0t Info: PORT1 Wait for TX PTP ready assertion done.", $time);
+end
+endtask
+
+
+task ptp_rx_initialize;
+    input string rate_rx;
+    input int    fec_rx;
+    input int    pl_rx;
+    input int    fl_rx;
+    input [31:0] pl_fl_map_rx;
+begin
+    $display("RATE RX = %s",rate_rx);
+    $display("FEC RX = %d",fec_rx);
+    $display("PL RX = %d",pl_rx);
+    $display("FL RX = %d",fl_rx);
+    $display("PL FL MAP RX = %d",pl_fl_map_rx);
+    $display("%0t Info: PORT0 RX PTP initialization Started.", $time);
+    port0_wait_rx_pcs_fully_aligned(rate_rx,fec_rx);
+    port0_configure_rx_fec_cw_pos(fec_rx,fl_rx,pl_rx,pl_fl_map_rx);
+    port0_wait_rx_ptp_offset_data_valid();
+    port0_read_rx_ptp_offset_data(pl_rx,rate_rx,fec_rx);
+    port0_determine_rx_ref_lane(fec_rx,fl_rx,rate_rx,pl_rx,pl_fl_map_rx);
+    port0_calculate_rx_offsets(fec_rx,rate_rx,pl_rx);
+    port0_write_rx_ref_lane();
+    port0_write_calculated_rx_offsets(rate_rx);
+    port0_notify_soft_ptp_rx_user_cfg_done();
+    port0_wait_rx_ptp_ready();
+    $display("%0t Info: PORT0 RX PTP initialization Done.", $time);
+    if (`SM_PTP_NUM_PORTS == 2) begin
+       $display("%0t Info: PORT1 RX PTP initialization Started.", $time);
+       port1_wait_rx_pcs_fully_aligned(rate_rx,fec_rx);
+       port1_configure_rx_fec_cw_pos(fec_rx,fl_rx,pl_rx,pl_fl_map_rx);
+       port1_wait_rx_ptp_offset_data_valid();
+       port1_read_rx_ptp_offset_data(pl_rx,rate_rx,fec_rx);
+       port1_determine_rx_ref_lane(fec_rx,fl_rx,rate_rx,pl_rx,pl_fl_map_rx);
+       port1_calculate_rx_offsets(fec_rx,rate_rx,pl_rx);
+       port1_write_rx_ref_lane();
+       port1_write_calculated_rx_offsets(rate_rx);
+       port1_notify_soft_ptp_rx_user_cfg_done();
+       port1_wait_rx_ptp_ready();
+       $display("%0t Info: PORT1 RX PTP initialization Done.", $time);
+    end 
+end
+endtask
 
   // ----------------------------------------------------------------------
   // ----------------------------------------------------------------------
@@ -953,558 +1839,1025 @@ class sm_ptp_basic_seq extends uvm_sequence;
               UVM_LOW)
   endtask
 
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task wait_for_data_offset_valid();
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
 
-    `uvm_info(get_full_name(), "wait ptp tx and rx offset data valid for port 0", UVM_LOW)
-    while (data[0][1:0] !== 2'b11) begin
+task port0_configure_rx_fec_cw_pos; // Yes Variables
+    input int    fec_rx;
+    input int    fl_rx;
+    input int    pl_rx;
+    input [31:0] pl_fl_map_rx;
+
+
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    // FEC variant
+    if (fec_rx > 0) begin
+        $display("%0t Info: PORT0 FEC variant...proceed to rx_fec_codeword_position step.", $time);
+
+        // a) Read rx_fec_codeword_position
+        for (fl = 0; fl<fl_rx; fl++) begin
+          axi_master_read(
+              .address(`SM_PTP_PORT0_FEC_RX_CW_POS_ADDR_BASE+'h230), // 70230
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data)
+          );
+          port0_rx_fec_cw_pos_fl[fl]     = data[0][14:0];
+        end
+
+        // b) Calculate pulse adjustment and check for FEC's cw_pos rollover between FEC lane received from the same transceiver lane.
+        for (fl=0; fl<fl_rx; fl++) begin
+            if ((port0_rx_fec_cw_pos_fl[fl] >= port0_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)]) && ((port0_rx_fec_cw_pos_fl[fl] - port0_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)]) > 15'h4E20)) begin
+                if (fec_rx == 2) begin  // KRFEC
+                    port0_rx_xcvr_if_pulse_adj = 31'h5280 - {16'h0000, port0_rx_fec_cw_pos_fl[fl]};
+                end
+                port0_rx_xcvr_if_pulse_adj_sign[fl] = 1'b1;
+            end else if ((port0_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)] > port0_rx_fec_cw_pos_fl[fl]) && ((port0_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)] - port0_rx_fec_cw_pos_fl[fl]) > 15'h4E20)) begin
+                if (fec_rx == 2) begin  // KRFEC
+                    port0_rx_xcvr_if_pulse_adj = 31'h5280 + {16'h0000, port0_rx_fec_cw_pos_fl[fl]};
+                end
+                port0_rx_xcvr_if_pulse_adj_sign = 1'b0;
+            end else begin
+                port0_rx_xcvr_if_pulse_adj = {16'h0000, port0_rx_fec_cw_pos_fl[fl]};
+                port0_rx_xcvr_if_pulse_adj_sign = 1'b0;
+            end
+        end
+
+       // c) Write pulse adjustment
+            xcvr_sel = 4'h0;
+        for (pl=0; pl<pl_rx; pl++) begin
+            // quad*_lane0: localparam XCVRIF_RX_LAT_BIT_FOR_ASYNC_0_ADDR    = 'hA_5008; pl = 0
+            xcvr_addr = `SM_PTP_PORT0_XCVRIF_RX_LAT_BIT_FOR_ASYNC_0_ADDR_BASE +'h5008;
+            xcvr_addr_int = {0, xcvr_sel, xcvr_addr};
+
+          //avmm_read(xcvr_addr_int, rdata_ptp_init, 0, 0);
+          axi_master_read(
+              .address(xcvr_addr_int),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data)
+          );
+          //avmm_write(xcvr_addr_int, {rdata_ptp_init[31:18] ,port0_rx_xcvr_if_pulse_adj[pl*pl_fl_map_rx][17:0]}); // fl = pl*pl_fl_map_rx
+          data[0] = {data[0][31:18],port0_rx_xcvr_if_pulse_adj[pl*pl_fl_map_rx][17:0]};
+          axi_master_write(
+                  .address(xcvr_addr_int),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data),	.wstrb(wstrb)
+          );
+        end
+        
+        // d) Notify soft PTP that pulse adjustments have been configured
+        //avmm_read({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+        axi_master_read(
+                .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h18),
+                .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                .burst_length(1), .data(data));
+        data[0] = data[0] | 32'h0000_0002;
+        //avmm_write({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, wdata_ptp_init);
+        axi_master_write(
+                .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h18),
+                .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                .burst_length(1), .data(data),	.wstrb(wstrb)
+        );
+    end
+    // No FEC variant: skipping this step
+    else begin
+        $display("%0t Info: No-FEC variant...rx_fec_codeword_position step is skipped", $time);
+        port0_rx_fec_cw_pos_fl     = '{default:15'h0000};
+        port0_rx_xcvr_if_pulse_adj = '{default:31'h0000_0000};
+    end
+    $display("%0t Info: PORT0 FEC variant...proceed to rx_fec_codeword_position step done.", $time);
+end
+endtask
+
+
+task port1_configure_rx_fec_cw_pos; // Yes Variables
+    input int    fec_rx;
+    input int    fl_rx;
+    input int    pl_rx;
+    input [31:0] pl_fl_map_rx;
+
+
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    // FEC variant
+    if (fec_rx > 0) begin
+        $display("%0t Info: PORT1 FEC variant...proceed to rx_fec_codeword_position step.", $time);
+
+        // a) Read rx_fec_codeword_position
+        for (fl = 0; fl<fl_rx; fl++) begin
+          axi_master_read(
+              .address(`SM_PTP_PORT1_FEC_RX_CW_POS_ADDR_BASE+'h230), // 70230
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data)
+          );
+          port1_rx_fec_cw_pos_fl[fl]     = data[0][14:0];
+        end
+
+        // b) Calculate pulse adjustment and check for FEC's cw_pos rollover between FEC lane received from the same transceiver lane.
+        for (fl=0; fl<fl_rx; fl++) begin
+            if ((port1_rx_fec_cw_pos_fl[fl] >= port1_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)]) && ((port1_rx_fec_cw_pos_fl[fl] - port1_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)]) > 15'h4E20)) begin
+                if (fec_rx == 2) begin  // KRFEC
+                    port1_rx_xcvr_if_pulse_adj = 31'h5280 - {16'h0000, port1_rx_fec_cw_pos_fl[fl]};
+                end
+                port1_rx_xcvr_if_pulse_adj_sign[fl] = 1'b1;
+            end else if ((port1_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)] > port1_rx_fec_cw_pos_fl[fl]) && ((port1_rx_fec_cw_pos_fl[fl-(fl%pl_fl_map_rx)] - port1_rx_fec_cw_pos_fl[fl]) > 15'h4E20)) begin
+                if (fec_rx == 2) begin  // KRFEC
+                    port1_rx_xcvr_if_pulse_adj = 31'h5280 + {16'h0000, port1_rx_fec_cw_pos_fl[fl]};
+                end
+                port1_rx_xcvr_if_pulse_adj_sign = 1'b0;
+            end else begin
+                port1_rx_xcvr_if_pulse_adj = {16'h0000, port1_rx_fec_cw_pos_fl[fl]};
+                port1_rx_xcvr_if_pulse_adj_sign = 1'b0;
+            end
+        end
+
+       // c) Write pulse adjustment
+            xcvr_sel = 4'h0;
+        for (pl=0; pl<pl_rx; pl++) begin
+            // quad*_lane0: localparam XCVRIF_RX_LAT_BIT_FOR_ASYNC_0_ADDR    = 'hA_5008; pl = 0
+            xcvr_addr = `SM_PTP_PORT1_XCVRIF_RX_LAT_BIT_FOR_ASYNC_0_ADDR_BASE +'h5008;
+            xcvr_addr_int = {1, xcvr_sel, xcvr_addr};
+
+          //avmm_read(xcvr_addr_int, rdata_ptp_init, 0, 0);
+          axi_master_read(
+              .address(xcvr_addr_int),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data)
+          );
+          //avmm_write(xcvr_addr_int, {rdata_ptp_init[31:18] ,port0_rx_xcvr_if_pulse_adj[pl*pl_fl_map_rx][17:0]}); // fl = pl*pl_fl_map_rx
+          data[0] = {data[0][31:18],port1_rx_xcvr_if_pulse_adj[pl*pl_fl_map_rx][17:0]};
+          axi_master_write(
+                  .address(xcvr_addr_int),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data),	.wstrb(wstrb)
+          );
+        end
+        
+        // d) Notify soft PTP that pulse adjustments have been configured
+        //avmm_read({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+        axi_master_read(
+                .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h18),
+                .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                .burst_length(1), .data(data));
+        data[0] = data[0] | 32'h0000_0002;
+        //avmm_write({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, wdata_ptp_init);
+        axi_master_write(
+                .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h18),
+                .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                .burst_length(1), .data(data),	.wstrb(wstrb)
+        );
+    end
+    // No FEC variant: skipping this step
+    else begin
+        $display("%0t Info: No-FEC variant...rx_fec_codeword_position step is skipped", $time);
+        port1_rx_fec_cw_pos_fl     = '{default:15'h0000};
+        port1_rx_xcvr_if_pulse_adj = '{default:31'h0000_0000};
+    end
+    $display("%0t Info: PORT1 FEC variant...proceed to rx_fec_codeword_position step done.", $time);
+end
+endtask
+
+task port0_wait_rx_pcs_fully_aligned; // Yes Variables
+    input string rate_rx;
+    input int    fec_rx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT0 Wait for RX PCS fully aligned assertion.", $time);
+    port0_rx_fec_locked = 0;
+    port0_rx_pcs_locked = 0;
+
+    if ((rate_rx == "25G" || rate_rx == "10G") && fec_rx > 0) begin // 10G/25G FEC variant
+        // Wait for FEC to Lock
+        //avmm_read({inst_num, (FEC_LANE_RX_STAT_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); //24'h7_0210;
+        while (data[0][1] !== 'b0) begin
+          axi_master_read(
+                  .address(`SM_PTP_PORT0_FEC_RX_CW_POS_ADDR_BASE+'h210),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data));
+        #100ns;
+        end
+        port0_rx_fec_locked = 1;
+        $display("%0t Info: PORT0 10G or 25G FEC variant - RX FEC locked.", $time);
+        // Wait for PCS to lock 
+        //avmm_read({inst_num, (PCS_RX_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); // 6_0084
+        while (data[0][0] !== 'b1) begin
+          axi_master_read(
+                  .address(`SM_PTP_HSSI_CSR_PORT0_PCS_RX+'h84),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data));
+        #100ns;
+        end
+        port0_rx_pcs_locked = 1;
+        $display("%0t Info: PORT0 10G or 25G FEC variant - RX PCS locked.", $time);
+    end
+    else begin // No FEC variant (10G-100G only)
+        // Wait for PCS to lock 
+            //avmm_read({inst_num, (PCS_RX_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+            $display("%0t Info: No FEC variant - RX PCS locked.", $time);
+        while (data[0][0] !== 'b1) begin
+          axi_master_read(
+                  .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h30),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data));
+        end
+    end
+    $display("%0t Info: PORT0 Wait for RX PCS fully aligned assertion done.", $time);
+end
+endtask
+
+
+task port1_wait_rx_pcs_fully_aligned; // Yes Variables
+    input string rate_rx;
+    input int    fec_rx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT1 Wait for RX PCS fully aligned assertion.", $time);
+    port1_rx_fec_locked = 0;
+    port1_rx_pcs_locked = 0;
+
+    if ((rate_rx == "25G" || rate_rx == "10G") && fec_rx > 0) begin // 10G/25G FEC variant
+        // Wait for FEC to Lock
+        //avmm_read({inst_num, (FEC_LANE_RX_STAT_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); //24'h7_0210;
+        while (data[0][1] !== 'b0) begin
+          axi_master_read(
+                  .address(`SM_PTP_PORT1_FEC_RX_CW_POS_ADDR_BASE+'h210),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data));
+        #100ns;
+        end
+        port1_rx_fec_locked = 1;
+        $display("%0t Info: PORT1 10G or 25G FEC variant - RX FEC locked.", $time);
+        // Wait for PCS to lock 
+        //avmm_read({inst_num, (PCS_RX_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0); // 6_0084
+        while (data[0][0] !== 'b1) begin
+          axi_master_read(
+                  .address(`SM_PTP_HSSI_CSR_PORT1_PCS_RX+'h84),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data));
+        #100ns;
+        end
+        port1_rx_pcs_locked = 1;
+        $display("%0t Info: PORT1 10G or 25G FEC variant - RX PCS locked.", $time);
+    end
+    else begin // No FEC variant (10G-100G only)
+        // Wait for PCS to lock 
+            //avmm_read({inst_num, (PCS_RX_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+            $display("%0t Info: No FEC variant - RX PCS locked.", $time);
+        while (data[0][0] !== 'b1) begin
+          axi_master_read(
+                  .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
+                  .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+                  .burst_length(1), .data(data));
+        end
+    end
+    $display("%0t Info: PORT1 Wait for RX PCS fully aligned assertion done.", $time);
+end
+endtask
+
+
+task port0_wait_rx_ptp_offset_data_valid;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT0 Wait for RX PTP offset data valid assertion...", $time);
+    //avmm_read({inst_num, (PTP_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);// 830
+    while (data[0][1] !== 'b1) begin
       axi_master_read(
               .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h30),
               .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
               .burst_length(1), .data(data));
+    #500ns;
     end
+    $display("%0t Info: PORT0 RX PTP offset data valid asserted done", $time);
+end
+endtask
 
-    data = new[1];
+task port1_wait_rx_ptp_offset_data_valid;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT1 Wait for RX PTP offset data valid assertion...", $time);
+    //avmm_read({inst_num, (PTP_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);// 830
+    while (data[0][1] !== 'b1) begin
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+    #500ns;
+    end
+    $display("%0t Info: PORT1 RX PTP offset data valid asserted done", $time);
+end
+endtask
 
-    if (`SM_PTP_NUM_PORTS == 2) begin
-      `uvm_info(get_full_name(), "wait ptp tx and rx offset data valid for port 1", UVM_LOW)
-      while (data[0][1:0] !== 2'b11) begin
-        axi_master_read(
-                .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
-                .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-                .burst_length(1), .data(data));
+
+
+task port0_read_rx_ptp_offset_data;
+    input int    pl_rx;
+    input string rate_rx;
+    input int    fec_rx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: Read RX raw offset data.", $time);
+    // const_delay
+    //avmm_read({inst_num, (PTP_RX_DATA_CONSTDELAY_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);8F4
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'hF4),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+
+    port0_rx_const_delay      = data[0][30:0];
+    port0_rx_const_delay_sign = data[0][31];
+    
+    // offset, wire_delay, time of each lane
+    //avmm_read({inst_num, (PTP_RX_LANE0_CALC_DATA_OFFSET_ADDR + 12'(pl*32) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);904
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h104),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+    port0_rx_apulse_offset     [pl]   = data[0][30:0];
+    port0_rx_apulse_offset_sign[pl]   = data[0][31];
+    
+    //avmm_read({inst_num, (PTP_RX_LANE0_CALC_DATA_WIREDELAY_ADDR + 12'(pl*32) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);914
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h114),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+        port0_rx_apulse_wdelay     [pl]   = data[0][19:0];
+
+    //avmm_read({inst_num, (PTP_RX_LANE0_CALC_DATA_TIME_ADDR + 12'(pl*32)+ 24'(port_num << 16))}, rdata_ptp_init, 0, 0);90C
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h10C),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+        port0_rx_apulse_time       [pl]   = {1'b0, data[0][27:0]};
+    
+    // 10G/25G No FEC
+    if ((rate_rx == "25G" || rate_rx == "10G") && fec_rx == 0) begin
+      //avmm_read({inst_num, (PCS_RX_BITSLIP_CNT_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);60110
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT0_PCS_RX+'h0110),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+          port0_rx_pcs_bitslip_cnt     = data[0][6:0];
+          port0_rx_pcs_dlpulse_aligned = data[0][7];
       end
+    else begin
+        port0_rx_pcs_bitslip_cnt     = 7'h00;
+        port0_rx_pcs_dlpulse_aligned = 0;
     end
-  endtask: wait_for_data_offset_valid
+    $display("%0t Info: PORT0 Read RX raw offset data done.", $time);
+end
+endtask
 
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task ptp_tx_initialise();
-    read_tx_port0_ptp_offset_data();
-    calculate_tx_port0_offsets();
-    write_calculated_tx_port0_offsets();
 
-    if (`SM_PTP_NUM_PORTS == 2) begin
-      read_tx_port1_ptp_offset_data();
-      calculate_tx_port1_offsets();
-      write_calculated_tx_port1_offsets();
+task port1_read_rx_ptp_offset_data;
+    input int    pl_rx;
+    input string rate_rx;
+    input int    fec_rx;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT1 Read RX raw offset data.", $time);
+    // const_delay
+    //avmm_read({inst_num, (PTP_RX_DATA_CONSTDELAY_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);8F4
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'hF4),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+
+    port1_rx_const_delay      = data[0][30:0];
+    port1_rx_const_delay_sign = data[0][31];
+    
+    // offset, wire_delay, time of each lane
+    //avmm_read({inst_num, (PTP_RX_LANE0_CALC_DATA_OFFSET_ADDR + 12'(pl*32) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);904
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h104),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+    port1_rx_apulse_offset     [pl]   = data[0][30:0];
+    port1_rx_apulse_offset_sign[pl]   = data[0][31];
+    
+    //avmm_read({inst_num, (PTP_RX_LANE0_CALC_DATA_WIREDELAY_ADDR + 12'(pl*32) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);914
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h114),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+        port1_rx_apulse_wdelay     [pl]   = data[0][19:0];
+
+    //avmm_read({inst_num, (PTP_RX_LANE0_CALC_DATA_TIME_ADDR + 12'(pl*32)+ 24'(port_num << 16))}, rdata_ptp_init, 0, 0);90C
+    axi_master_read(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h10C),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data));
+        port1_rx_apulse_time       [pl]   = {1'b0, data[0][27:0]};
+    
+    // 10G/25G No FEC
+    if ((rate_rx == "25G" || rate_rx == "10G") && fec_rx == 0) begin
+      //avmm_read({inst_num, (PCS_RX_BITSLIP_CNT_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);60110
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT1_PCS_RX+'h0110),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+          port1_rx_pcs_bitslip_cnt     = data[0][6:0];
+          port1_rx_pcs_dlpulse_aligned = data[0][7];
+      end
+    else begin
+        port1_rx_pcs_bitslip_cnt     = 7'h00;
+        port1_rx_pcs_dlpulse_aligned = 0;
     end
-  endtask: ptp_tx_initialise
+    $display("%0t Info: PORT1 Read RX raw offset data done.", $time);
+end
+endtask
 
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task ptp_rx_initialise();
-    read_rx_port0_ptp_offset_data();
-    calculate_rx_port0_offsets();
-    write_calculated_rx_port0_offsets();
-
-    if (`SM_PTP_NUM_PORTS == 2) begin
-      read_rx_port1_ptp_offset_data();
-      calculate_rx_port1_offsets();
-      write_calculated_rx_port1_offsets();
+task port0_determine_rx_ref_lane;
+    input int    fec_rx;
+    input int    fl_rx;
+    input string rate_rx;
+    input int    pl_rx;
+    input [31:0] pl_fl_map_rx;
+begin
+    $display("%0t Info: PORT0 Determine RX reference lane.", $time);
+    // a) Determine sync pulse (Alignment Marker) offsets with reference to async pulse
+    if (fec_rx > 0) begin // FEC variants
+        for (fl=0; fl<fl_rx; fl++) begin
+            if (port0_rx_xcvr_if_pulse_adj_sign[fl] == 1'b1) begin
+                port0_rx_spulse_offset_sign[fl] = 1'b1;
+                port0_rx_spulse_offset[fl]      = 43'((port0_rx_xcvr_if_pulse_adj[fl] * ui * pl_fl_map_rx) >> (28 - 16));
+            end else begin
+                if ((port0_rx_xcvr_if_pulse_adj[fl] + (port0_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)] & {(cw_pos_upper_bit){1'b1}})) >  port0_rx_xcvr_if_pulse_adj[fl-(fl% pl_fl_map_rx)])begin
+                    port0_rx_spulse_offset_sign[fl] = 1'b0;
+                    port0_rx_spulse_offset[fl]      = 43'((   port0_rx_xcvr_if_pulse_adj[fl]
+                                                        - port0_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)]
+                                                        + (port0_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)] & {(cw_pos_upper_bit){1'b1}})
+                                                    ) * ui * pl_fl_map_rx) >> (28 - 16);
+                end
+                else begin
+                    port0_rx_spulse_offset_sign[fl] = 1'b1;
+                    port0_rx_spulse_offset[fl]      = 43'((   port0_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)]  
+                                                        - port0_rx_xcvr_if_pulse_adj[fl] 
+                                                        - (port0_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)] & {(cw_pos_upper_bit){1'b1}})
+                                                    ) * ui * pl_fl_map_rx) >> (28 - 16);
+                end
+            end
+        end
     end
-  endtask: ptp_rx_initialise
+    else begin
+        if (rate_rx == "100G" || rate_rx == "50G") begin // 50G/100G No FEC variants
+        //    for (vl = 0; vl < VL; vl++) begin
+        //       //avmm_read({inst_num, (PCS_PTP_VL_DATA_HI_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+        //       rx_pcs_vl_data_hi[vl].ptp_al_pos_50g           = rdata_ptp_init[30:24];
+        //       rx_pcs_vl_data_hi[vl].local_vl                 = rdata_ptp_init[12:8];
+        //       rx_pcs_vl_data_hi[vl].local_pl                 = rdata_ptp_init[6:5];
+        //       rx_pcs_vl_data_hi[vl].vlane_num                = rdata_ptp_init[4:0];
+        //       rx_pcs_vl_data_hi[vl].ptp_gb33to66_occupancy   = rdata_ptp_init[23:22];
+        //       rx_pcs_vl_data_hi[vl].ptp_gb110_occupancy      = rdata_ptp_init[21:19];
+        //       rx_pcs_vl_data_hi[vl].ptp_am_detect_occupancy  = rdata_ptp_init[18:16];
+        //       rx_pcs_vl_data_hi[vl].ptp_blk_align_occupancy  = rdata_ptp_init[15:13];
+        //       rx_pcs_vl_data_hi[vl].spare                    = rdata_ptp_init[31];
 
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task read_tx_port0_ptp_offset_data;
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port0_data_constdelay_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port0_calc_data_offset_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port0_calc_data_time_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port0_calc_data_wiredelay_addr[];
+        //       //avmm_read({inst_num, (PCS_PTP_VL_DATA_LO_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+        //       rx_pcs_vl_data_lo[vl].local_vl                = rdata_ptp_init[28:24];
+        //       rx_pcs_vl_data_lo[vl].ptp_am_count            = rdata_ptp_init[23:10];
+        //       rx_pcs_vl_data_lo[vl].ptp_al_pos              = rdata_ptp_init[9:5];
+        //       rx_pcs_vl_data_lo[vl].ptp_al_blk_phase        = rdata_ptp_init[4:3];
+        //       rx_pcs_vl_data_lo[vl].ptp_gbstate             = rdata_ptp_init[2:0];
+        //       rx_pcs_vl_data_lo[vl].spare                   = rdata_ptp_init[31:29];
 
-    ptp_tx_port0_data_constdelay_addr = new[1];
-    ptp_tx_port0_calc_data_offset_addr = new[1];
-    ptp_tx_port0_calc_data_time_addr = new[1];
-    ptp_tx_port0_calc_data_wiredelay_addr = new[1];
+        //       generate_vl_data(rx_pcs_vl_data_hi[vl], rx_pcs_vl_data_lo[vl]);
+        //       rx_spulse_offset_sign[vl] = 1'b0;
+        //       rx_spulse_offset[vl]    = 64'(((2560*66) - rx_non_fec_vl_offset[vl][31:0]) * ui) >> (28 - 16); // HW to use different value than 2560
+        //    end 
+        end
+        else begin // 25G/10G No FEC variants
+            port0_rx_pcs_dlpulse_cnt = port0_rx_pcs_dlpulse_aligned ? 7'd33 : 7'd0;
+            
+            port0_bslip_p_dlpulse          = 35'((port0_rx_pcs_bitslip_cnt + port0_rx_pcs_dlpulse_cnt) * ui);
+            port0_rx_spulse_offset[0]      = {8'h00, port0_bslip_p_dlpulse[34:12]}; // port0_bslip_p_dlpulse >> (28 - 16)
+            port0_rx_spulse_offset_sign[0] = 1'b0;
+        end
+    end
+    if (rate_rx == "25G" || rate_rx == "10G") begin // 10G/25G: Skipping b) c) d)
+        port0_rx_ref_pl = 0;
+        port0_rx_ref_fl = 0;
+        port0_rx_ref_vl = 0;
+    end
+    else begin // Multi PMA lane variants
+        // b) Detect rollover of async pulse time
+        ptp_max_apluse_time(pl_rx, port0_rx_apulse_time, port0_rx_apulse_time_max);
+        for (pl=0; pl<pl_rx; pl++) begin
+            if (port0_rx_apulse_time_max - port0_rx_apulse_time[pl] > 29'h01F4_0000)  begin // > 500ns
+                if (port0_rx_apulse_time_max[27:24] == 4'hF)
+                   port0_rx_apulse_time[pl] = port0_rx_apulse_time[pl] + 29'h1000_0000;
+                else
+                   port0_rx_apulse_time[pl] = port0_rx_apulse_time[pl] + 29'h0A00_0000;
+            end
+        end
+    
+        // c) Calculate actual time of RX Alignment Marker
+        if (fec_rx > 0) begin // FEC variants
+            for (fl=0; fl<fl_rx; fl++) begin
+                port0_rx_fl_local_pl = (fl-(fl%pl_fl_map_rx))/pl_fl_map_rx;
+                port0_rx_am_actual_time[fl]  =    (port0_rx_apulse_time[port0_rx_fl_local_pl])
+                                         + (port0_rx_apulse_offset_sign[port0_rx_fl_local_pl] ? -port0_rx_apulse_offset[port0_rx_fl_local_pl] : port0_rx_apulse_offset[port0_rx_fl_local_pl])
+                                         - (port0_rx_apulse_wdelay[port0_rx_fl_local_pl])
+                                         + (port0_rx_spulse_offset_sign[fl] ? - port0_rx_spulse_offset[fl] : port0_rx_spulse_offset[fl]);
+            end
+        end
+        else begin // No FEC variants
+            //for (vl = 0; vl < VL; vl++) begin
+            //    port0_rx_vl_local_pl   [vl]  = rx_non_fec_vl_local_pl[vl];
+            //    port0_rx_am_actual_time[vl]  =   (port0_rx_apulse_time[port0_rx_vl_local_pl[vl]])
+            //                             + (port0_rx_apulse_offset_sign[port0_rx_vl_local_pl[vl]] ? -port0_rx_apulse_offset[port0_rx_vl_local_pl[vl]] : port0_rx_apulse_offset[port0_rx_vl_local_pl[vl]])
+            //                             - (port0_rx_apulse_wdelay[port0_rx_vl_local_pl[vl]])
+            //                             + (port0_rx_spulse_offset_sign[vl] ? - port0_rx_spulse_offset[vl] : port0_rx_spulse_offset[vl]);
+            //end 
+        end
+        // d) Determine RX Reference Lane
+        if (fec_rx > 0) begin // FEC variants
+            ptp_max_ref_ln(fl_rx, port0_rx_am_actual_time, port0_rx_am_actual_time_max, port0_rx_ref_fl); // obtain port0_rx_ref_fl
+            port0_rx_ref_pl = (port0_rx_ref_fl-(port0_rx_ref_fl%pl_fl_map_rx))/pl_fl_map_rx;
+        end
+        //else begin // No FEC variants
+        //    ptp_max_ref_ln(VL, port0_rx_am_actual_time, port0_rx_am_actual_time_max, port0_rx_ref_vl); // obtain port0_rx_ref_vl
+        //    port0_rx_ref_pl = rx_pcs_vl_data_hi[port0_rx_ref_vl].local_pl;
+        //end
+    end // end of // Multi PMA lane variants
+    $display("%0t Info: PORT0 Determine RX reference lane done.", $time);
+end
+endtask
 
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'hF0),
+
+task port1_determine_rx_ref_lane;
+    input int    fec_rx;
+    input int    fl_rx;
+    input string rate_rx;
+    input int    pl_rx;
+    input [31:0] pl_fl_map_rx;
+begin
+    $display("%0t Info: PORT1 Determine RX reference lane.", $time);
+    // a) Determine sync pulse (Alignment Marker) offsets with reference to async pulse
+    if (fec_rx > 0) begin // FEC variants
+        for (fl=0; fl<fl_rx; fl++) begin
+            if (port1_rx_xcvr_if_pulse_adj_sign[fl] == 1'b1) begin
+                port1_rx_spulse_offset_sign[fl] = 1'b1;
+                port1_rx_spulse_offset[fl]      = 43'((port1_rx_xcvr_if_pulse_adj[fl] * ui * pl_fl_map_rx) >> (28 - 16));
+            end else begin
+                if ((port1_rx_xcvr_if_pulse_adj[fl] + (port1_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)] & {(cw_pos_upper_bit){1'b1}})) >  port1_rx_xcvr_if_pulse_adj[fl-(fl% pl_fl_map_rx)])begin
+                    port1_rx_spulse_offset_sign[fl] = 1'b0;
+                    port1_rx_spulse_offset[fl]      = 43'((   port1_rx_xcvr_if_pulse_adj[fl]
+                                                        - port1_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)]
+                                                        + (port1_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)] & {(cw_pos_upper_bit){1'b1}})
+                                                    ) * ui * pl_fl_map_rx) >> (28 - 16);
+                end
+                else begin
+                    port1_rx_spulse_offset_sign[fl] = 1'b1;
+                    port1_rx_spulse_offset[fl]      = 43'((   port1_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)]  
+                                                        - port1_rx_xcvr_if_pulse_adj[fl] 
+                                                        - (port1_rx_xcvr_if_pulse_adj[fl-(fl%pl_fl_map_rx)] & {(cw_pos_upper_bit){1'b1}})
+                                                    ) * ui * pl_fl_map_rx) >> (28 - 16);
+                end
+            end
+        end
+    end
+    else begin
+        if (rate_rx == "100G" || rate_rx == "50G") begin // 50G/100G No FEC variants
+        //    for (vl = 0; vl < VL; vl++) begin
+        //       //avmm_read({inst_num, (PCS_PTP_VL_DATA_HI_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+        //       rx_pcs_vl_data_hi[vl].ptp_al_pos_50g           = rdata_ptp_init[30:24];
+        //       rx_pcs_vl_data_hi[vl].local_vl                 = rdata_ptp_init[12:8];
+        //       rx_pcs_vl_data_hi[vl].local_pl                 = rdata_ptp_init[6:5];
+        //       rx_pcs_vl_data_hi[vl].vlane_num                = rdata_ptp_init[4:0];
+        //       rx_pcs_vl_data_hi[vl].ptp_gb33to66_occupancy   = rdata_ptp_init[23:22];
+        //       rx_pcs_vl_data_hi[vl].ptp_gb110_occupancy      = rdata_ptp_init[21:19];
+        //       rx_pcs_vl_data_hi[vl].ptp_am_detect_occupancy  = rdata_ptp_init[18:16];
+        //       rx_pcs_vl_data_hi[vl].ptp_blk_align_occupancy  = rdata_ptp_init[15:13];
+        //       rx_pcs_vl_data_hi[vl].spare                    = rdata_ptp_init[31];
+
+        //       //avmm_read({inst_num, (PCS_PTP_VL_DATA_LO_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);
+        //       rx_pcs_vl_data_lo[vl].local_vl                = rdata_ptp_init[28:24];
+        //       rx_pcs_vl_data_lo[vl].ptp_am_count            = rdata_ptp_init[23:10];
+        //       rx_pcs_vl_data_lo[vl].ptp_al_pos              = rdata_ptp_init[9:5];
+        //       rx_pcs_vl_data_lo[vl].ptp_al_blk_phase        = rdata_ptp_init[4:3];
+        //       rx_pcs_vl_data_lo[vl].ptp_gbstate             = rdata_ptp_init[2:0];
+        //       rx_pcs_vl_data_lo[vl].spare                   = rdata_ptp_init[31:29];
+
+        //       generate_vl_data(rx_pcs_vl_data_hi[vl], rx_pcs_vl_data_lo[vl]);
+        //       rx_spulse_offset_sign[vl] = 1'b0;
+        //       rx_spulse_offset[vl]    = 64'(((2560*66) - rx_non_fec_vl_offset[vl][31:0]) * ui) >> (28 - 16); // HW to use different value than 2560
+        //    end 
+        end
+        else begin // 25G/10G No FEC variants
+            port1_rx_pcs_dlpulse_cnt = port1_rx_pcs_dlpulse_aligned ? 7'd33 : 7'd0;
+            
+            port1_bslip_p_dlpulse          = 35'((port1_rx_pcs_bitslip_cnt + port1_rx_pcs_dlpulse_cnt) * ui);
+            port1_rx_spulse_offset[0]      = {8'h00, port1_bslip_p_dlpulse[34:12]}; // port1_bslip_p_dlpulse >> (28 - 16)
+            port1_rx_spulse_offset_sign[0] = 1'b0;
+        end
+    end
+    if (rate_rx == "25G" || rate_rx == "10G") begin // 10G/25G: Skipping b) c) d)
+        port1_rx_ref_pl = 0;
+        port1_rx_ref_fl = 0;
+        port1_rx_ref_vl = 0;
+    end
+    else begin // Multi PMA lane variants
+        // b) Detect rollover of async pulse time
+        ptp_max_apluse_time(pl_rx, port1_rx_apulse_time, port1_rx_apulse_time_max);
+        for (pl=0; pl<pl_rx; pl++) begin
+            if (port1_rx_apulse_time_max - port1_rx_apulse_time[pl] > 29'h01F4_0000)  begin // > 500ns
+                if (port1_rx_apulse_time_max[27:24] == 4'hF)
+                   port1_rx_apulse_time[pl] = port1_rx_apulse_time[pl] + 29'h1000_0000;
+                else
+                   port1_rx_apulse_time[pl] = port1_rx_apulse_time[pl] + 29'h0A00_0000;
+            end
+        end
+    
+        // c) Calculate actual time of RX Alignment Marker
+        if (fec_rx > 0) begin // FEC variants
+            for (fl=0; fl<fl_rx; fl++) begin
+                port1_rx_fl_local_pl = (fl-(fl%pl_fl_map_rx))/pl_fl_map_rx;
+                port1_rx_am_actual_time[fl]  =    (port1_rx_apulse_time[port1_rx_fl_local_pl])
+                                         + (port1_rx_apulse_offset_sign[port1_rx_fl_local_pl] ? -port1_rx_apulse_offset[port1_rx_fl_local_pl] : port1_rx_apulse_offset[port1_rx_fl_local_pl])
+                                         - (port1_rx_apulse_wdelay[port1_rx_fl_local_pl])
+                                         + (port1_rx_spulse_offset_sign[fl] ? - port1_rx_spulse_offset[fl] : port1_rx_spulse_offset[fl]);
+            end
+        end
+        else begin // No FEC variants
+            //for (vl = 0; vl < VL; vl++) begin
+            //    port1_rx_vl_local_pl   [vl]  = rx_non_fec_vl_local_pl[vl];
+            //    port1_rx_am_actual_time[vl]  =   (port1_rx_apulse_time[port1_rx_vl_local_pl[vl]])
+            //                             + (port1_rx_apulse_offset_sign[port1_rx_vl_local_pl[vl]] ? -port1_rx_apulse_offset[port1_rx_vl_local_pl[vl]] : port1_rx_apulse_offset[port1_rx_vl_local_pl[vl]])
+            //                             - (port1_rx_apulse_wdelay[port1_rx_vl_local_pl[vl]])
+            //                             + (port1_rx_spulse_offset_sign[vl] ? - port1_rx_spulse_offset[vl] : port1_rx_spulse_offset[vl]);
+            //end 
+        end
+        // d) Determine RX Reference Lane
+        if (fec_rx > 0) begin // FEC variants
+            ptp_max_ref_ln(fl_rx, port1_rx_am_actual_time, port1_rx_am_actual_time_max, port1_rx_ref_fl); // obtain port1_rx_ref_fl
+            port1_rx_ref_pl = (port1_rx_ref_fl-(port1_rx_ref_fl%pl_fl_map_rx))/pl_fl_map_rx;
+        end
+        //else begin // No FEC variants
+        //    ptp_max_ref_ln(VL, port1_rx_am_actual_time, port1_rx_am_actual_time_max, port1_rx_ref_vl); // obtain port1_rx_ref_vl
+        //    port1_rx_ref_pl = rx_pcs_vl_data_hi[port1_rx_ref_vl].local_pl;
+        //end
+    end // end of // Multi PMA lane variants
+    $display("%0t Info: PORT1 Determine RX reference lane done.", $time);
+end
+endtask
+
+task port0_calculate_rx_offsets;
+    input int    fec_rx;
+    input string rate_rx;
+    input int    pl_rx; 
+begin
+    $display("%0t Info: PORT0 Calculate RX offsets", $time);
+    if (fec_rx > 0) begin
+        port0_rx_tam_adjust   =     (port0_rx_const_delay_sign              ? -port0_rx_const_delay              : port0_rx_const_delay)
+                            + (port0_rx_apulse_offset_sign[port0_rx_ref_pl] ? -port0_rx_apulse_offset[port0_rx_ref_pl] : port0_rx_apulse_offset[port0_rx_ref_pl])
+                            - (port0_rx_apulse_wdelay[port0_rx_ref_pl])
+                            + (port0_rx_spulse_offset_sign[port0_rx_ref_fl] ? - port0_rx_spulse_offset[port0_rx_ref_fl] : port0_rx_spulse_offset[port0_rx_ref_fl]);
+    end 
+    // No FEC variants
+    else begin 
+        port0_rx_tam_adjust   =     (port0_rx_const_delay_sign              ? -port0_rx_const_delay              : port0_rx_const_delay)
+                            + (port0_rx_apulse_offset_sign[port0_rx_ref_pl] ? -port0_rx_apulse_offset[port0_rx_ref_pl] : port0_rx_apulse_offset[port0_rx_ref_pl])
+                            - (port0_rx_apulse_wdelay[port0_rx_ref_pl])
+                            + (port0_rx_spulse_offset_sign[port0_rx_ref_vl] ? - port0_rx_spulse_offset[port0_rx_ref_vl] : port0_rx_spulse_offset[port0_rx_ref_vl]);
+    end
+    port0_rx_tam_adjust_2c    = port0_rx_tam_adjust;
+
+    // b) Calculate RX extra latency
+    port0_rx_pma_delay_ns_fns     = 43'((rx_pma_delay_ui * ui)) >> (28 - 16);
+    port0_rx_external_phy_delay   = 0;
+    port0_rx_extra_latency[30:0]  = port0_rx_pma_delay_ns_fns + port0_rx_external_phy_delay;
+    port0_rx_extra_latency[31]    = 1'b1;
+    
+    // c) Calculate RX virtual lane offsets
+    if (rate_rx == "25G" || rate_rx == "10G") begin // 10G/25G: skipping this step
+        rx_vl_offset = '{default:0};
+    end
+    else begin
+        // KP-FEC/LL-FEC variants
+        if (fec_rx == 3 || fec_rx == 4) begin 
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'((vl - (vl % pl_rx)) / pl_rx * (68 * ui)) >> (28 - 16);
+            end
+        end
+        // KR-FEC variants
+        else if(fec_rx == 2) begin
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'((vl - (vl % pl_rx)) / pl_rx * (66 * ui)) >> (28 - 16);
+            end
+        end
+        // 100G No FEC variants
+        else if(fec_rx == 0 && rate_rx == "100G") begin 
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'(2 * ui) >> (28 - 16);
+            end
+        end
+        // 50G No FEC variants
+        else if(fec_rx == 0 && rate_rx == "50G") begin 
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'(ui / 2) >> (28 - 16);
+            end
+        end
+    end
+    $display("%0t Info: PORT0 Calculate RX offsets done", $time);
+end
+endtask
+
+
+task port1_calculate_rx_offsets;
+    input int    fec_rx;
+    input string rate_rx;
+    input int    pl_rx; 
+begin
+    $display("%0t Info: PORT1 Calculate RX offsets", $time);
+    if (fec_rx > 0) begin
+        port1_rx_tam_adjust   =     (port1_rx_const_delay_sign              ? -port1_rx_const_delay              : port1_rx_const_delay)
+                            + (port1_rx_apulse_offset_sign[port1_rx_ref_pl] ? -port1_rx_apulse_offset[port1_rx_ref_pl] : port1_rx_apulse_offset[port1_rx_ref_pl])
+                            - (port1_rx_apulse_wdelay[port1_rx_ref_pl])
+                            + (port1_rx_spulse_offset_sign[port1_rx_ref_fl] ? - port1_rx_spulse_offset[port1_rx_ref_fl] : port1_rx_spulse_offset[port1_rx_ref_fl]);
+    end 
+    // No FEC variants
+    else begin 
+        port1_rx_tam_adjust   =     (port1_rx_const_delay_sign              ? -port1_rx_const_delay              : port1_rx_const_delay)
+                            + (port1_rx_apulse_offset_sign[port1_rx_ref_pl] ? -port1_rx_apulse_offset[port1_rx_ref_pl] : port1_rx_apulse_offset[port1_rx_ref_pl])
+                            - (port1_rx_apulse_wdelay[port1_rx_ref_pl])
+                            + (port1_rx_spulse_offset_sign[port1_rx_ref_vl] ? - port1_rx_spulse_offset[port1_rx_ref_vl] : port1_rx_spulse_offset[port1_rx_ref_vl]);
+    end
+    port1_rx_tam_adjust_2c    = port1_rx_tam_adjust;
+
+    // b) Calculate RX extra latency
+    port1_rx_pma_delay_ns_fns     = 43'((rx_pma_delay_ui * ui)) >> (28 - 16);
+    port1_rx_external_phy_delay   = 0;
+    port1_rx_extra_latency[30:0]  = port1_rx_pma_delay_ns_fns + port1_rx_external_phy_delay;
+    port1_rx_extra_latency[31]    = 1'b1;
+    
+    // c) Calculate RX virtual lane offsets
+    if (rate_rx == "25G" || rate_rx == "10G") begin // 10G/25G: skipping this step
+        rx_vl_offset = '{default:0};
+    end
+    else begin
+        // KP-FEC/LL-FEC variants
+        if (fec_rx == 3 || fec_rx == 4) begin 
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'((vl - (vl % pl_rx)) / pl_rx * (68 * ui)) >> (28 - 16);
+            end
+        end
+        // KR-FEC variants
+        else if(fec_rx == 2) begin
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'((vl - (vl % pl_rx)) / pl_rx * (66 * ui)) >> (28 - 16);
+            end
+        end
+        // 100G No FEC variants
+        else if(fec_rx == 0 && rate_rx == "100G") begin 
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'(2 * ui) >> (28 - 16);
+            end
+        end
+        // 50G No FEC variants
+        else if(fec_rx == 0 && rate_rx == "50G") begin 
+            for (vl=0; vl<VL; vl++) begin
+                rx_vl_offset[vl]    = 44'(ui / 2) >> (28 - 16);
+            end
+        end
+    end
+    $display("%0t Info: PORT1 Calculate RX offsets done", $time);
+end
+endtask
+
+task port0_write_rx_ref_lane;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+begin
+    $display("%0t Info: PORT0 Program determined RX reference lane into IP", $time);
+    //avmm_read({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);80C
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h0C),
         .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
         .burst_length(1),
-        .data(ptp_tx_port0_data_constdelay_addr));
+        .data(data)
+     );
+    data[0] = data[0] | {26'h000_0000, port0_rx_ref_pl, 3'b000};
+    //avmm_write({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, wdata_ptp_init);80C
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h0C),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT0 Program determined RX reference lane into IP done", $time);
+end
+endtask
 
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port0_data_constdelay_addr: %0h", ptp_tx_port0_data_constdelay_addr[0]),
-              UVM_LOW);
 
-    tx_port0_const_delay      = ptp_tx_port0_data_constdelay_addr[0][30:0];
-    tx_port0_const_delay_sign = ptp_tx_port0_data_constdelay_addr[0][31];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h100),
+task port1_write_rx_ref_lane;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
+  
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+begin
+    $display("%0t Info: PORT1 Program determined RX reference lane into IP", $time);
+    //avmm_read({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);80C
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h0C),
         .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
         .burst_length(1),
-        .data(ptp_tx_port0_calc_data_offset_addr));
+        .data(data)
+     );
+    data[0] = data[0] | {26'h000_0000, port1_rx_ref_pl, 3'b000};
+    //avmm_write({inst_num, (PTP_TXRX_REF_LANE_ADDR + 24'(port_num << 16))}, wdata_ptp_init);80C
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h0C),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT1 Program determined RX reference lane into IP done", $time);
+end
+endtask
 
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port0_calc_data_offset_addr: %0h", ptp_tx_port0_calc_data_offset_addr[0]),
-              UVM_LOW);
 
-    tx_port0_apulse_offset      = ptp_tx_port0_calc_data_offset_addr[0][30:0];
-    tx_port0_apulse_offset_sign = ptp_tx_port0_calc_data_offset_addr[0][31];
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h108),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_tx_port0_calc_data_time_addr));
 
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port0_calc_data_time_addr: %0h", ptp_tx_port0_calc_data_time_addr[0]),
-              UVM_LOW);
-    
-    tx_port0_apulse_time = {1'b0, ptp_tx_port0_calc_data_time_addr[0][27:0]};
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h110),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_tx_port0_calc_data_wiredelay_addr));
-    
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port0_calc_data_wiredelay_addr: %0h", ptp_tx_port0_calc_data_wiredelay_addr[0]),
-              UVM_LOW);
-    tx_port0_apulse_wdelay = ptp_tx_port0_calc_data_wiredelay_addr[0][19:0];
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task calculate_tx_port0_offsets;
-    logic [31:0] tx_pma_delay_ns_fns;
-    logic [31:0] tx_external_phy_delay;
-
-    $display("%0t Info: Calculate TX offsets", $time);
-    // a) Calculate TX TAM adjust (twos complement)
-    tx_port0_tam_adjust = (tx_port0_const_delay_sign ? -tx_port0_const_delay : tx_port0_const_delay)
-                          + (tx_port0_apulse_offset_sign ? -tx_port0_apulse_offset : tx_port0_apulse_offset)
-                          - (tx_port0_apulse_wdelay);
-    
-    tx_port0_tam_adjust_2c  = tx_port0_tam_adjust;
-
-    // b) Calculate TX extra latency
-    tx_pma_delay_ns_fns     = 43'((/*tx_pma_delay_ui*/79 * /*ui*/'h018D3019)) >> (28 - 16);
-    tx_external_phy_delay   = 0;
-    tx_port0_extra_latency[30:0]  = tx_pma_delay_ns_fns + tx_external_phy_delay;
-    tx_port0_extra_latency[31]    = 1'b0;
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task write_calculated_tx_port0_offsets();
+task port0_write_calculated_rx_offsets;
+    input string rate_rx;
     bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
     bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
 
     wdata = new[1];
     wstrb = new[1];
     wstrb[0] = 'hf;
-
-    wdata[0] = tx_port0_extra_latency;
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT0_HARD_IP_EMAC + 'hE0),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .burst_length(1), .data(wdata),	.wstrb(wstrb)
-    );
-
-    wdata[0] = tx_port0_tam_adjust_2c;
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .burst_length(1), .data(wdata),	.wstrb(wstrb)
-    );
-  endtask: write_calculated_tx_port0_offsets
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task read_tx_port1_ptp_offset_data;
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port1_data_constdelay_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port1_calc_data_offset_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port1_calc_data_time_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_tx_port1_calc_data_wiredelay_addr[];
-
-    ptp_tx_port1_data_constdelay_addr = new[1];
-    ptp_tx_port1_calc_data_offset_addr = new[1];
-    ptp_tx_port1_calc_data_time_addr = new[1];
-    ptp_tx_port1_calc_data_wiredelay_addr = new[1];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'hF0),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_tx_port1_data_constdelay_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port1_data_constdelay_addr: %0h", ptp_tx_port1_data_constdelay_addr[0]),
-              UVM_LOW);
-
-    tx_port1_const_delay      = ptp_tx_port1_data_constdelay_addr[0][30:0];
-    tx_port1_const_delay_sign = ptp_tx_port1_data_constdelay_addr[0][31];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h100),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_tx_port1_calc_data_offset_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port1_calc_data_offset_addr: %0h", ptp_tx_port1_calc_data_offset_addr[0]),
-              UVM_LOW);
-
-    tx_port1_apulse_offset      = ptp_tx_port1_calc_data_offset_addr[0][30:0];
-    tx_port1_apulse_offset_sign = ptp_tx_port1_calc_data_offset_addr[0][31];
+begin
+    $display("%0t Info: PORT0 Program calculated RX offsets into IP", $time);
     
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h108),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_tx_port1_calc_data_time_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port1_calc_data_time_addr: %0h", ptp_tx_port1_calc_data_time_addr[0]),
-              UVM_LOW);
-    
-    tx_port1_apulse_time = {1'b0, ptp_tx_port1_calc_data_time_addr[0][27:0]};
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h110),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_tx_port1_calc_data_wiredelay_addr));
-    
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_tx_port1_calc_data_wiredelay_addr: %0h", ptp_tx_port1_calc_data_wiredelay_addr[0]),
-              UVM_LOW);
-    tx_port1_apulse_wdelay = ptp_tx_port1_calc_data_wiredelay_addr[0][19:0];
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task calculate_tx_port1_offsets;
-    logic [30:0] tx_pma_delay_ns_fns;
-    logic [30:0] tx_external_phy_delay;
-
-    $display("%0t Info: Calculate TX offsets", $time);
-    // a) Calculate TX TAM adjust (twos complement)
-    tx_port1_tam_adjust = (tx_port1_const_delay_sign ? -tx_port1_const_delay : tx_port1_const_delay)
-                          + (tx_port1_apulse_offset_sign ? -tx_port1_apulse_offset : tx_port1_apulse_offset)
-                          - (tx_port1_apulse_wdelay);
-    
-    tx_port1_tam_adjust_2c  = tx_port1_tam_adjust;
-        
-    // b) Calculate TX extra latency
-    tx_pma_delay_ns_fns     = 43'((/*tx_pma_delay_ui*/79 * /*ui*/'h018D3019)) >> (28 - 16);
-    tx_external_phy_delay   = 0;
-    tx_port1_extra_latency[30:0]  = tx_pma_delay_ns_fns + tx_external_phy_delay;
-    tx_port1_extra_latency[31]    = 1'b0;
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task write_calculated_tx_port1_offsets();
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
-    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
-
-    wdata = new[1];
-    wstrb = new[1];
-    wstrb[0] = 'hf;
-
-    wdata[0] = tx_port1_extra_latency;
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT1_HARD_IP_EMAC + 'hE0),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .burst_length(1), .data(wdata),	.wstrb(wstrb)
-    );
-
-    wdata[0] = tx_port1_tam_adjust_2c;
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .burst_length(1), .data(wdata),	.wstrb(wstrb)
-    );
-  endtask: write_calculated_tx_port1_offsets
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task read_rx_port0_ptp_offset_data;
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port0_data_constdelay_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port0_calc_data_offset_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port0_calc_data_time_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port0_calc_data_wiredelay_addr[];
-
-    ptp_rx_port0_data_constdelay_addr = new[1];
-    ptp_rx_port0_calc_data_offset_addr = new[1];
-    ptp_rx_port0_calc_data_time_addr = new[1];
-    ptp_rx_port0_calc_data_wiredelay_addr = new[1];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'hF4),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port0_data_constdelay_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port0_data_constdelay_addr: %0h", ptp_rx_port0_data_constdelay_addr[0]),
-              UVM_LOW);
-
-    rx_port0_const_delay      = ptp_rx_port0_data_constdelay_addr[0][30:0];
-    rx_port0_const_delay_sign = ptp_rx_port0_data_constdelay_addr[0][31];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h104),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port0_calc_data_offset_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port0_calc_data_offset_addr: %0h", ptp_rx_port0_calc_data_offset_addr[0]),
-              UVM_LOW);
-
-    rx_port0_apulse_offset      = ptp_rx_port0_calc_data_offset_addr[0][30:0];
-    rx_port0_apulse_offset_sign = ptp_rx_port0_calc_data_offset_addr[0][31];
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h10C),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port0_calc_data_time_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port0_calc_data_time_addr: %0h", ptp_rx_port0_calc_data_time_addr[0]),
-              UVM_LOW);
-    
-    rx_port0_apulse_time = {1'b0, ptp_rx_port0_calc_data_time_addr[0][27:0]};
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h114),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port0_calc_data_wiredelay_addr));
-    
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port0_calc_data_wiredelay_addr: %0h", ptp_rx_port0_calc_data_wiredelay_addr[0]),
-              UVM_LOW);
-    rx_port0_apulse_wdelay = ptp_rx_port0_calc_data_wiredelay_addr[0][19:0];
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task calculate_rx_port0_offsets;
-    logic [31:0] rx_pma_delay_ns_fns;
-    logic [31:0] rx_external_phy_delay;
-
-    $display("%0t Info: Calculate TX offsets", $time);
-    // a) Calculate TX TAM adjust (twos complement)
-    rx_port0_tam_adjust = (rx_port0_const_delay_sign ? -rx_port0_const_delay : rx_port0_const_delay)
-                          + (rx_port0_apulse_offset_sign ? -rx_port0_apulse_offset : rx_port0_apulse_offset)
-                          - (rx_port0_apulse_wdelay);
-    
-    rx_port0_tam_adjust_2c  = rx_port0_tam_adjust;
-        
-    // b) Calculate TX extra latency
-    rx_pma_delay_ns_fns     = 43'((/*rx_pma_delay_ui*/88 * /*ui*/'h018D3019)) >> (28 - 16);
-    rx_external_phy_delay   = 0;
-    rx_port0_extra_latency[30:0]  = rx_pma_delay_ns_fns + rx_external_phy_delay;
-    rx_port0_extra_latency[31]    = 1'b1;
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task write_calculated_rx_port0_offsets();
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
-    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
-
-    wdata = new[1];
-    wstrb = new[1];
-    wstrb[0] = 'hf;
-
-    wdata[0] = rx_port0_extra_latency;
+    // Write RX virtual lane offsets
+    // if (rate_rx == "25G" || rate_rx == "10G") begin
+    //     // 10G/25G - this step is skipped.
+    // end
+    if (!(rate_rx == "25G" || rate_rx == "10G")) begin
+        for (vl=0; vl<VL; vl++) begin
+            //avmm_write({inst_num, (PCS_RX_PTP_VL_OFFSET_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, rx_vl_offset[vl]);
+        end
+    end
+    // Write RX extra latency
+    //avmm_write({inst_num, (MAC_RX_EXTRA_LATENCY_ADDR + 24'(port_num << 16))}, rx_extra_latency);500FC
+    wdata[0] = port0_rx_extra_latency;
     axi_master_write(
             .address(`SM_PTP_HSSI_CSR_PORT0_HARD_IP_EMAC + 'hFC),
             .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .burst_length(1), .data(wdata),	.wstrb(wstrb)
+            .data(wdata), .burst_length(1), .wstrb(wstrb)
     );
 
-    wdata[0] = rx_port0_tam_adjust_2c;
+    // Write RX TAM adjust
+    //avmm_write({inst_num, (PTP_RX_TAM_ADJUST_ADDR + 24'(port_num << 16))}, port0_rx_tam_adjust_2c);804
+    wdata[0] = port0_rx_tam_adjust_2c;
     axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h4),
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h04),
             .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
             .burst_length(1), .data(wdata),	.wstrb(wstrb)
     );
-  endtask: write_calculated_rx_port0_offsets
+    $display("%0t Info: PORT0 Program calculated RX offsets into IP done", $time);
+end
+endtask
 
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task read_rx_port1_ptp_offset_data;
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port1_data_constdelay_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port1_calc_data_offset_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port1_calc_data_time_addr[];
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] ptp_rx_port1_calc_data_wiredelay_addr[];
 
-    ptp_rx_port1_data_constdelay_addr = new[1];
-    ptp_rx_port1_calc_data_offset_addr = new[1];
-    ptp_rx_port1_calc_data_time_addr = new[1];
-    ptp_rx_port1_calc_data_wiredelay_addr = new[1];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'hF4),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port1_data_constdelay_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port1_data_constdelay_addr: %0h", ptp_rx_port1_data_constdelay_addr[0]),
-              UVM_LOW);
-
-    rx_port1_const_delay      = ptp_rx_port1_data_constdelay_addr[0][30:0];
-    rx_port1_const_delay_sign = ptp_rx_port1_data_constdelay_addr[0][31];
-
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h104),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port1_calc_data_offset_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port1_calc_data_offset_addr: %0h", ptp_rx_port1_calc_data_offset_addr[0]),
-              UVM_LOW);
-
-    rx_port1_apulse_offset      = ptp_rx_port1_calc_data_offset_addr[0][30:0];
-    rx_port1_apulse_offset_sign = ptp_rx_port1_calc_data_offset_addr[0][31];
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h10C),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port1_calc_data_time_addr));
-
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port1_calc_data_time_addr: %0h", ptp_rx_port1_calc_data_time_addr[0]),
-              UVM_LOW);
-    
-    rx_port1_apulse_time = {1'b0, ptp_rx_port1_calc_data_time_addr[0][27:0]};
-    
-    axi_master_read(
-        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h114),
-        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-        .burst_length(1),
-        .data(ptp_rx_port1_calc_data_wiredelay_addr));
-    
-    `uvm_info(get_full_name(),
-              $sformatf("Value of ptp_rx_port1_calc_data_wiredelay_addr: %0h", ptp_rx_port1_calc_data_wiredelay_addr[0]),
-              UVM_LOW);
-    rx_port1_apulse_wdelay = ptp_rx_port1_calc_data_wiredelay_addr[0][19:0];
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task calculate_rx_port1_offsets;
-    logic [31:0] rx_pma_delay_ns_fns;
-    logic [31:0] rx_external_phy_delay;
-
-    $display("%0t Info: Calculate TX offsets", $time);
-    // a) Calculate TX TAM adjust (twos complement)
-    rx_port1_tam_adjust = (rx_port1_const_delay_sign ? -rx_port1_const_delay : rx_port1_const_delay)
-                          + (rx_port1_apulse_offset_sign ? -rx_port1_apulse_offset : rx_port1_apulse_offset)
-                          - (rx_port1_apulse_wdelay);
-    
-    rx_port1_tam_adjust_2c  = rx_port1_tam_adjust;
-
-    // b) Calculate TX extra latency
-    rx_pma_delay_ns_fns     = 43'((/*rx_pma_delay_ui*/88 * /*ui*/'h018D3019)) >> (28 - 16);
-    rx_external_phy_delay   = 0;
-    rx_port1_extra_latency[30:0]  = rx_pma_delay_ns_fns + rx_external_phy_delay;
-    rx_port1_extra_latency[31]    = 1'b1;
-  endtask
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task write_calculated_rx_port1_offsets();
+task port1_write_calculated_rx_offsets;
+    input string rate_rx;
     bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
     bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
 
     wdata = new[1];
     wstrb = new[1];
     wstrb[0] = 'hf;
-
-    wdata[0] = rx_port1_extra_latency;
+begin
+    $display("%0t Info: PORT1 Program calculated RX offsets into IP", $time);
+    
+    // Write RX virtual lane offsets
+    // if (rate_rx == "25G" || rate_rx == "10G") begin
+    //     // 10G/25G - this step is skipped.
+    // end
+    if (!(rate_rx == "25G" || rate_rx == "10G")) begin
+        for (vl=0; vl<VL; vl++) begin
+            //avmm_write({inst_num, (PCS_RX_PTP_VL_OFFSET_0_ADDR + 8'(vl*4) + 24'(port_num << 16))}, rx_vl_offset[vl]);
+        end
+    end
+    // Write RX extra latency
+    //avmm_write({inst_num, (MAC_RX_EXTRA_LATENCY_ADDR + 24'(port_num << 16))}, rx_extra_latency);500FC
+    wdata[0] = port1_rx_extra_latency;
     axi_master_write(
             .address(`SM_PTP_HSSI_CSR_PORT1_HARD_IP_EMAC + 'hFC),
             .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .burst_length(1), .data(wdata),	.wstrb(wstrb)
+            .data(wdata), .burst_length(1), .wstrb(wstrb)
     );
 
-    wdata[0] = rx_port1_tam_adjust_2c;
+    // Write RX TAM adjust
+    //avmm_write({inst_num, (PTP_RX_TAM_ADJUST_ADDR + 24'(port_num << 16))}, port1_rx_tam_adjust_2c);804
+    wdata[0] = port1_rx_tam_adjust_2c;
     axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h4),
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h04),
             .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
             .burst_length(1), .data(wdata),	.wstrb(wstrb)
     );
-  endtask: write_calculated_rx_port1_offsets
+    $display("%0t Info: PORT1 Program calculated RX offsets into IP done", $time);
+end
+endtask
 
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task notify_soft_ptp_user_cfg_done();
-    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] wdata [];
+task port0_notify_soft_ptp_rx_user_cfg_done;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
     bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
 
-    wdata = new[1];
+begin
+    data = new[1];
     wstrb = new[1];
     wstrb[0] = 'hf;
-    wdata[0][0] = 1;
-
+    $display("%0t Info: PORT0 RX user flow configuration is completed. Notify soft IP.", $time);
+    //avmm_read({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);818
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h18),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+    data[0] = data[0] | 32'h0000_0001;
+    //avmm_write({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, wdata_ptp_init);//818
     axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP+'h14),
+            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP + 'h18),
             .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .data(wdata), .burst_length(1), .wstrb(wstrb)
+            .burst_length(1), .data(data),	.wstrb(wstrb)
     );
+    $display("%0t Info: PORT0 RX user flow configuration is completed. Notify soft IP done.", $time);
+end
+endtask
 
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP+'h18),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .data(wdata), .burst_length(1), .wstrb(wstrb)
-    );
-
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP+'h14),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .data(wdata), .burst_length(1), .wstrb(wstrb)
-    );
-
-    axi_master_write(
-            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP+'h18),
-            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-            .data(wdata), .burst_length(1), .wstrb(wstrb)
-    );
-  endtask: notify_soft_ptp_user_cfg_done
-
-  // ----------------------------------------------------------------------
-  // ----------------------------------------------------------------------
-  task wait_for_ptp_ready();
+task port1_notify_soft_ptp_rx_user_cfg_done;
     bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+    bit [`SVT_AXI_WSTRB_WIDTH-1:0]    wstrb [];
 
-    `uvm_info(get_full_name(), "wait ptp tx and rx are ready for port 0", UVM_LOW)
-    while (data[0][3:2] !== 2'b11) begin
+begin
+    data = new[1];
+    wstrb = new[1];
+    wstrb[0] = 'hf;
+    $display("%0t Info: PORT1 RX user flow configuration is completed. Notify soft IP.", $time);
+    //avmm_read({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);818
+     axi_master_read(
+        .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h18),
+        .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+        .burst_length(1),
+        .data(data)
+     );
+    data[0] = data[0] | 32'h0000_0001;
+    //avmm_write({inst_num, (PTP_RX_USER_CFG_STATUS_ADDR + 24'(port_num << 16))}, wdata_ptp_init);//818
+    axi_master_write(
+            .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP + 'h18),
+            .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+            .burst_length(1), .data(data),	.wstrb(wstrb)
+    );
+    $display("%0t Info: PORT1 RX user flow configuration is completed. Notify soft IP done.", $time);
+end
+endtask
+ 
+task port0_wait_rx_ptp_ready;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT0 Wait for RX PTP ready assertion.", $time);
+    //avmm_read({inst_num, (PTP_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);830
+    while (data[0][3] !== 'b1) begin
       axi_master_read(
               .address(`SM_PTP_HSSI_CSR_PORT0_SOFT_IP_PTP +'h30),
               .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
               .burst_length(1), .data(data));
+    #100ns;
     end
+    $display("%0t Info: PORT0 Wait for RX PTP ready assertion done.", $time);
+end
+endtask
 
-    data = new[1];
-
-    `uvm_info(get_full_name(), "wait ptp tx and rx are ready for port 1", UVM_LOW)
-    if (`SM_PTP_NUM_PORTS == 2) begin
-      while (data[0][3:2] !== 2'b11) begin
-        axi_master_read(
-                .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
-                .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
-                .burst_length(1), .data(data));
-      end
+task port1_wait_rx_ptp_ready;
+    bit [`SVT_AXI_MAX_DATA_WIDTH-1:0] data [];
+begin
+    $display("%0t Info: PORT1 Wait for RX PTP ready assertion.", $time);
+    //avmm_read({inst_num, (PTP_STATUS_ADDR + 24'(port_num << 16))}, rdata_ptp_init, 0, 0);830
+    while (data[0][3] !== 'b1) begin
+      axi_master_read(
+              .address(`SM_PTP_HSSI_CSR_PORT1_SOFT_IP_PTP +'h30),
+              .burst_sz(svt_axi_transaction::BURST_SIZE_32BIT),
+              .burst_length(1), .data(data));
+    #100ns;
     end
-    `uvm_info(get_full_name(), "wait ptp tx and rx are ready for all ports", UVM_LOW)
-  endtask
+    $display("%0t Info: PORT1 Wait for RX PTP ready assertion done.", $time);
+end
+endtask
+
 
   // ----------------------------------------------------------------------
   // ----------------------------------------------------------------------
