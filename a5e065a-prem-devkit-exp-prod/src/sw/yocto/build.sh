@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Source this file by running:
-# 	$ . <machine>-<image>-build.sh
+# 	$ . agilex5_dk_a5e065ab32aes1_b0-PTP_2P25G-build.sh
 
 arg0=$0
 test -n "$BASH" && arg0=$BASH_SOURCE[0]
 filename="${arg0##*/}"
 
-WORKSPACE=$(/bin/readlink -f $(dirname '${0}'))
+WORKSPACE=$(/bin/readlink -f $(dirname "${arg0}"))
 echo "[INFO] Build location = $WORKSPACE"
 if [ ! -d "$WORKSPACE" ]; then
 	mkdir $WORKSPACE
@@ -16,16 +16,34 @@ echo -e "\n[INFO] Selected ingredient versions for this build"
 #------------------------------------------------------------------------------------------#
 # Set Machine variant
 #------------------------------------------------------------------------------------------#
+BB_MACHINE=agilex5_dk_a5e065bb32aes1_b0
 target=${filename%-*-*}
 if [ -n "${target}" -a "${target}" != "${filename}" ]; then
-	MACHINE=${target}
+	PRODUCT_MACHINE=${target}
 fi
-if [ -z "${MACHINE}" ]; then
-	echo "MACHINE must be set before sourcing this script"
-	return
+if [ -z "${PRODUCT_MACHINE}" ]; then
+	echo "[ERROR] Source agilex5_dk_a5e065ab32aes1_b0-PTP_2P25G-build.sh"
+	return 1
 fi
-echo "MACHINE              = $MACHINE"
-export $MACHINE
+MACHINE=$BB_MACHINE
+echo "PRODUCT_MACHINE      = $PRODUCT_MACHINE"
+echo "MACHINE (bitbake)    = $MACHINE"
+export MACHINE
+
+machine_workspace_link_setup() {
+	pushd "$WORKSPACE" > /dev/null
+		if [[ -e "$MACHINE-$IMAGE-rootfs" && ! -L "$MACHINE-$IMAGE-rootfs" ]]; then
+			rm -rf "$MACHINE-$IMAGE-rootfs"
+		fi
+		rm -f "$MACHINE-$IMAGE-rootfs"
+		ln -sfn "$PRODUCT_MACHINE-$IMAGE-rootfs" "$MACHINE-$IMAGE-rootfs"
+	popd > /dev/null
+}
+
+machine_workspace_link_teardown() {
+	rm -f "$WORKSPACE/$MACHINE-$IMAGE-rootfs"
+}
+
 #------------------------------------------------------------------------------------------#
 # Set IMAGE variant and SOLUTION VARIANT
 #------------------------------------------------------------------------------------------#
@@ -51,6 +69,14 @@ export $IMAGE
 if [ -n "${SOLUTION}" ]; then
 	echo "SOLUTION             = $SOLUTION"
 	export $SOLUTION
+fi
+# ponytail: prem devkit PTP when sourced via build.sh directly
+if [ -z "${SOLUTION}" ]; then
+	SOLUTION=PTP_2P25G
+	export SOLUTION
+	IMAGE=gsrd
+	export IMAGE
+	echo "SOLUTION             = $SOLUTION"
 fi
 #------------------------------------------------------------------------------------------#
 # Set Linux Version
@@ -102,9 +128,9 @@ if [[ "$MACHINE" == *"agilex"* || "$MACHINE" == *"stratix10"* ]]; then
 		UB_CONFIG="agilex7_dk_si_agi027fb-socdk-atf"
 	elif [[ "$MACHINE" == "agilex5_dk_a5e"* ]]; then
 		if [[ "$IMAGE" == "nand" ]]; then
-			UB_CONFIG="$MACHINE-socdk-$IMAGE-atf"
+			UB_CONFIG="$BB_MACHINE-socdk-$IMAGE-atf"
 		else
-			UB_CONFIG="$MACHINE-socdk-atf"
+			UB_CONFIG="$BB_MACHINE-socdk-atf"
 		fi
 	elif [[ "$MACHINE" == *"stratix10"* ]]; then
 		UB_CONFIG="stratix10-socdk-atf"
@@ -140,31 +166,37 @@ echo -e "\n"
 # Clean up the build workspace for subsequent build to happen smoothly
 #------------------------------------------------------------------------------------------#
 # Setup staging folder for binaries generated
-STAGING_FOLDER=$WORKSPACE/$MACHINE-$IMAGE-images
+STAGING_FOLDER=$WORKSPACE/$PRODUCT_MACHINE-$IMAGE-images
 
 build_setup() {
 	if [ -d "$WORKSPACE" ]; then
 		echo -e "\n[INFO] Cleanup the /tmp, /conf folders in the workspace for next build"
 		pushd $WORKSPACE > /dev/null
-			rm -rf $MACHINE-$IMAGE-rootfs/tmp/ > /dev/null
-			rm -rf $MACHINE-$IMAGE-rootfs/conf/ > /dev/null
+			if [[ -e "$MACHINE-$IMAGE-rootfs" && ! -L "$MACHINE-$IMAGE-rootfs" ]]; then
+				rm -rf "$MACHINE-$IMAGE-rootfs"
+			fi
+			rm -f $MACHINE-$IMAGE-rootfs
+			rm -rf $PRODUCT_MACHINE-$IMAGE-rootfs/tmp/ > /dev/null
+			rm -rf $PRODUCT_MACHINE-$IMAGE-rootfs/conf/ > /dev/null
 
-			if [ -d $MACHINE-$IMAGE-images ]; then
+			if [ -d $PRODUCT_MACHINE-$IMAGE-images ]; then
 				echo "[INFO] Cleanup images folder in the workspace for next build"
-				rm -rf $MACHINE-$IMAGE-images > /dev/null
+				rm -rf $PRODUCT_MACHINE-$IMAGE-images > /dev/null
 			fi
 		popd > /dev/null
 	fi
 
-	if [ ! -d $WORKSPACE/$MACHINE-$IMAGE-rootfs ]; then
+	if [ ! -d $WORKSPACE/$PRODUCT_MACHINE-$IMAGE-rootfs ]; then
 		echo -e "\n[INFO] Create build workspace"
-		mkdir -p $WORKSPACE/$MACHINE-$IMAGE-rootfs
+		mkdir -p $WORKSPACE/$PRODUCT_MACHINE-$IMAGE-rootfs
 	fi
 
-	if [ ! -d $WORKSPACE/$MACHINE-$IMAGE-images ]; then
+	if [ ! -d $WORKSPACE/$PRODUCT_MACHINE-$IMAGE-images ]; then
 		echo -e "\n[INFO] Create image staging area"
-		mkdir -p $WORKSPACE/$MACHINE-$IMAGE-images
+		mkdir -p $WORKSPACE/$PRODUCT_MACHINE-$IMAGE-images
 	fi
+
+	machine_workspace_link_setup
 
 #------------------------------------------------------------------------------------------#
 # Update existing meta layers or clone a new one if it does not exists
@@ -172,6 +204,9 @@ build_setup() {
 	pushd $WORKSPACE > /dev/null
 		# Update submodules
 		git submodule update --init -r
+		if [[ "$MACHINE" == "$BB_MACHINE" && -n "${SOLUTION}" ]]; then
+			sed -i 's/kernel.itb/kernel_sed.itb/' meta-intel-fpga-refdes/conf/machine/${MACHINE}-gsrd.conf
+		fi
 	popd > /dev/null
 
 #------------------------------------------------------------------------------------------#
@@ -320,6 +355,8 @@ package() {
 		else
 			if [[ "$MACHINE" == "agilex5"* && -n "${SOLUTION}" ]]; then
 				cp -vrL kernel_sed.itb $STAGING_FOLDER/kernel_sed.itb         || echo "[INFO] No .itb file found."
+				cp -vrL kernel_sed.itb $STAGING_FOLDER/kernel.itb              || echo "[INFO] No .itb file found."
+				cp -vrL kernel_sed_noFPGA.itb $STAGING_FOLDER/kernel_sed_noFPGA.itb         || echo "[INFO] No .itb file found."
 			else
 				cp -vrL kernel.* $STAGING_FOLDER/       	|| echo "[INFO] No .itb file found."
 			fi
@@ -346,8 +383,8 @@ package() {
 	popd > /dev/null
 
 	if [[ "$MACHINE" == *"agilex"* || "$MACHINE" == *"stratix10"* ]]; then
-		mkdir -p $STAGING_FOLDER/u-boot-$MACHINE-socdk-$IMAGE-atf
-		ub_cp_destination=$STAGING_FOLDER/u-boot-$MACHINE-socdk-$IMAGE-atf
+		mkdir -p $STAGING_FOLDER/u-boot-$PRODUCT_MACHINE-socdk-$IMAGE-atf
+		ub_cp_destination=$STAGING_FOLDER/u-boot-$PRODUCT_MACHINE-socdk-$IMAGE-atf
 	elif [[ "$MACHINE" == "arria10" || "$MACHINE" == "cyclone5" ]]; then
 		mkdir -p $STAGING_FOLDER/u-boot-$MACHINE-socdk-$IMAGE
 		ub_cp_destination=$STAGING_FOLDER/u-boot-$MACHINE-socdk-$IMAGE
@@ -442,9 +479,13 @@ package() {
 				mv "$file" "${file/_dk_dev_agm039fes/}"
 			done
 		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32aes1_b0" ]; then
-			for file in *_dk_a5e065bb32aes1_b0*; do
-				mv -f "$file" "${file/_dk_a5e065bb32aes1_b0/}"
+			for file in *${BB_MACHINE}*; do
+				[ -e "$file" ] || continue
+				mv -f "$file" "${file/${BB_MACHINE}/${PRODUCT_MACHINE}}"
 			done
+			if [ -d "${MACHINE}_${IMAGE}_ghrd" ]; then
+				mv -f "${MACHINE}_${IMAGE}_ghrd" "${PRODUCT_MACHINE}_${IMAGE}_ghrd"
+			fi
 		elif [ "$MACHINE" == "agilex5_dk_a5e065bb32a" ]; then
 			for file in *_dk_a5e065bb32a*; do
 				mv "$file" "${file/_dk_a5e065bb32a/}"
@@ -474,9 +515,15 @@ package() {
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
             		xz --best console-image-minimal-stratix10.wic
 	    	elif [[ "$MACHINE" == *"agilex5_dk_"* || "$MACHINE" == *"agilex5_modular"* ]]; then
-	        	tar cvzf sdimage.tar.gz gsrd-console-image-agilex5.wic
+	        	gsrd_wic=gsrd-console-image-${PRODUCT_MACHINE}.wic
+	        	min_wic=console-image-minimal-${PRODUCT_MACHINE}.wic
+	        	if [ ! -f "$gsrd_wic" ]; then
+	        		gsrd_wic=gsrd-console-image-agilex5.wic
+	        		min_wic=console-image-minimal-agilex5.wic
+	        	fi
+	        	tar cvzf sdimage.tar.gz "$gsrd_wic"
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
-            		xz --force --best console-image-minimal-agilex5.wic
+            		xz --force --best "$min_wic"
 	    	else
             		tar cvzf sdimage.tar.gz gsrd-console-image-$MACHINE.wic
             		md5sum sdimage.tar.gz > sdimage.tar.gz.md5sum
@@ -496,7 +543,8 @@ package() {
 		popd > /dev/null
 	fi
 
-	echo -e "\n[INFO] Completed: Binaries are store in $WORKSPACE/$MACHINE-$IMAGE-images"
+	echo -e "\n[INFO] Completed: Binaries are store in $WORKSPACE/$PRODUCT_MACHINE-$IMAGE-images"
+	machine_workspace_link_teardown
 	echo -e "\n"
 }
 
