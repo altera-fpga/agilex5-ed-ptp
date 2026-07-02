@@ -3,3 +3,8 @@ a5e065b-prem-devkit-exp-prod/src/sw/yocto/*-rootfs/*
 a5e065b-prem-devkit-exp-prod/src/sw/yocto/*-images/*
 a5e065b-prem-devkit-exp-prod/src/sw/yocto/downloads/*
 a5e065b-prem-devkit-exp-prod/src/sw/yocto/sstate_cache/*
+a5e065a-prem-devkit-exp-prod/src/sw/yocto/*.patch
+a5e065a-prem-devkit-exp-prod/src/sw/yocto/*-rootfs/*
+a5e065a-prem-devkit-exp-prod/src/sw/yocto/*-images/*
+a5e065a-prem-devkit-exp-prod/src/sw/yocto/downloads/*
+a5e065a-prem-devkit-exp-prod/src/sw/yocto/sstate_cache/*
