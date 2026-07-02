@@ -169,9 +169,15 @@ build_setup() {
 #------------------------------------------------------------------------------------------#
 # Update existing meta layers or clone a new one if it does not exists
 #------------------------------------------------------------------------------------------#
-	pushd $WORKSPACE > /dev/null
-		# Update submodules
-		git submodule update --init -r
+	GIT_ROOT=$(git -C "$WORKSPACE" rev-parse --show-toplevel)
+	GIT_PREFIX=$(realpath --relative-to="$GIT_ROOT" "$WORKSPACE")
+	pushd "$GIT_ROOT" > /dev/null
+		git submodule update --init -r -- \
+			"$GIT_PREFIX/meta-clang" \
+			"$GIT_PREFIX/meta-intel-fpga" \
+			"$GIT_PREFIX/meta-intel-fpga-refdes" \
+			"$GIT_PREFIX/meta-openembedded" \
+			"$GIT_PREFIX/poky"
 	popd > /dev/null
 
 #------------------------------------------------------------------------------------------#

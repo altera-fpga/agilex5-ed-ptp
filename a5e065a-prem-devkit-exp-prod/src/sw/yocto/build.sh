@@ -70,7 +70,6 @@ if [ -n "${SOLUTION}" ]; then
 	echo "SOLUTION             = $SOLUTION"
 	export $SOLUTION
 fi
-# ponytail: prem devkit PTP when sourced via build.sh directly
 if [ -z "${SOLUTION}" ]; then
 	SOLUTION=PTP_2P25G
 	export SOLUTION
@@ -201,9 +200,18 @@ build_setup() {
 #------------------------------------------------------------------------------------------#
 # Update existing meta layers or clone a new one if it does not exists
 #------------------------------------------------------------------------------------------#
+	GIT_ROOT=$(git -C "$WORKSPACE" rev-parse --show-toplevel)
+	GIT_PREFIX=$(realpath --relative-to="$GIT_ROOT" "$WORKSPACE")
+	pushd "$GIT_ROOT" > /dev/null
+		git submodule update --init -r -- \
+			"$GIT_PREFIX/meta-clang" \
+			"$GIT_PREFIX/meta-intel-fpga" \
+			"$GIT_PREFIX/meta-intel-fpga-refdes" \
+			"$GIT_PREFIX/meta-openembedded" \
+			"$GIT_PREFIX/poky"
+	popd > /dev/null
+
 	pushd $WORKSPACE > /dev/null
-		# Update submodules
-		git submodule update --init -r
 		if [[ "$MACHINE" == "$BB_MACHINE" && -n "${SOLUTION}" ]]; then
 			sed -i 's/kernel.itb/kernel_sed.itb/' meta-intel-fpga-refdes/conf/machine/${MACHINE}-gsrd.conf
 		fi
