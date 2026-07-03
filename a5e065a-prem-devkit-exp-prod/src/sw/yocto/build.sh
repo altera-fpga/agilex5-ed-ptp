@@ -26,7 +26,7 @@ if [ -z "${PRODUCT_MACHINE}" ]; then
 	return 1
 fi
 MACHINE=$BB_MACHINE
-echo "PRODUCT_MACHINE      = $PRODUCT_MACHINE"
+#echo "PRODUCT_MACHINE      = $PRODUCT_MACHINE"
 echo "MACHINE (bitbake)    = $MACHINE"
 export MACHINE
 
