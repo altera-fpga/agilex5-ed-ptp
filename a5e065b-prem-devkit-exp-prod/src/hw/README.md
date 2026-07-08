@@ -19,7 +19,7 @@
     Alternatively, if using the GUI is preferred, the qpf file can be opened in Quartus and compile options selected there.
     ```
     cd synth/
-	  make all CONFIG=10G_NON_ANLT
+	  make all
     ```
 
 # Programming Files Generation Steps <UPDATE BELOW>
