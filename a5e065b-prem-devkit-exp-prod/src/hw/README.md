@@ -1,9 +1,10 @@
-# Intel® Agilex™ 5 Ethernet System Example Design Build Scripts
+# Agilex™ 5 10GbE Ethernet System Example Design Build Scripts
 
 
 # Dependency
 
-- Intel® Quartus Prime (See Release Notes for the supported version)
+- Altera&reg; Quartus&reg; Prime Pro software suite (See [Release Notes](../../#Project-Details) for the supported version)
+
 
 # Build Steps
 
@@ -18,12 +19,12 @@
     Alternatively, if using the GUI is preferred, the qpf file can be opened in Quartus and compile options selected there.
     ```
     cd synth/
-	make all
+	  make all
     ```
 
 # Programming Files Generation Steps <UPDATE BELOW>
 
- 1. File link of [`u-boot-spl-dtb.hex`](https://github.com/altera-innersource/applications.fpga.system-example-designs.agilex5-ed-ethernet/blob/master/src/sw/artifacts/u-boot-spl-dtb.hex) 
+ 1. File link of [`u-boot-spl-dtb.hex`](../sw/artifacts/u-boot-spl-dtb.hex) 
 
  2. Generate `top.{core,hps}.rbf` including U-Boot SPL:
 
@@ -31,3 +32,16 @@
     cd synth/
     quartus_pfg -c -o hps=on -o hps_path=../../sw/artifacts/u-boot-spl-dtb.hex output_files/top.sof output_files/top.rbf
     ```
+3. Generate QSPI Flash Image file
+   The QSPI image will contain the FPGA configuration data and the HPS FSBL and it can be built using the following command.
+	``` bash
+	cd $TOP_FOLDER 
+	quartus_pfg -c src/hw/synth/output_files/top.sof \
+	bin/top.jic \
+	-o hps_path=src/sw/artifacts/u-boot-spl-dtb.hex \
+	-o device=MT25QU128 \
+	-o flash_loader=A5ED065BB32AE4S \
+	-o mode=ASX4 \
+	-o hps=1
+		```
+
