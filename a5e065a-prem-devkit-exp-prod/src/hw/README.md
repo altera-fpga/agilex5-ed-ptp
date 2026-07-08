@@ -3,7 +3,7 @@
 
 # Dependency
 
-- Altera&reg; Quartus&reg; Prime Pro software suit (See [Release Notes](../../#Project-Details) for the supported version)
+- Altera&reg; Quartus&reg; Prime Pro software suite (See [Release Notes](../../#Project-Details) for the supported version)
 
 
 # Build Steps
