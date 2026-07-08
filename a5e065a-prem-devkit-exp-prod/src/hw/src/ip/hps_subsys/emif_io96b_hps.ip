@@ -2119,7 +2119,7 @@ Altera and sold by Altera or its authorized distributors.-->
         <ipxact:parameter parameterId="SYSINFO_DEVICE" type="string">
           <ipxact:name>SYSINFO_DEVICE</ipxact:name>
           <ipxact:displayName>SYSINFO_DEVICE</ipxact:displayName>
-          <ipxact:value>A5ED065AB32AE2V</ipxact:value>
+          <ipxact:value>A5ED065AB32AE1V</ipxact:value>
         </ipxact:parameter>
         <ipxact:parameter parameterId="SYSINFO_DEVICE_FAMILY" type="string">
           <ipxact:name>SYSINFO_DEVICE_FAMILY</ipxact:name>
@@ -2129,7 +2129,7 @@ Altera and sold by Altera or its authorized distributors.-->
         <ipxact:parameter parameterId="SYSINFO_DEVICE_SPEEDGRADE" type="string">
           <ipxact:name>SYSINFO_DEVICE_SPEEDGRADE</ipxact:name>
           <ipxact:displayName>SYSINFO_DEVICE_SPEEDGRADE</ipxact:displayName>
-          <ipxact:value>2</ipxact:value>
+          <ipxact:value>1</ipxact:value>
         </ipxact:parameter>
         <ipxact:parameter parameterId="SYSINFO_DEVICE_DIE_REVISIONS" type="string">
           <ipxact:name>SYSINFO_DEVICE_DIE_REVISIONS</ipxact:name>
@@ -2203,7 +2203,7 @@ Altera and sold by Altera or its authorized distributors.-->
         <ipxact:parameter parameterId="device" type="string">
           <ipxact:name>device</ipxact:name>
           <ipxact:displayName>Device</ipxact:displayName>
-          <ipxact:value>A5ED065AB32AE2V</ipxact:value>
+          <ipxact:value>A5ED065AB32AE1V</ipxact:value>
         </ipxact:parameter>
         <ipxact:parameter parameterId="deviceFamily" type="string">
           <ipxact:name>deviceFamily</ipxact:name>
