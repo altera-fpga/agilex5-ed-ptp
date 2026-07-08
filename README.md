@@ -54,3 +54,8 @@ Follow the below links to compile, build and test the Design solution for intend
 
 - [Building 10GbE Design on DK-A5E065BB32AEA](./a5e065b-prem-devkit-exp-prod)
 - [Building 25GbE Design on DK-A5E065AB32AEA](./a5e065a-prem-devkit-exp-prod)
+
+
+## Previous Releases
+Kindly refer to below repository branch for 2-Port 10GbE PTP1588 Design targetted to ES version of Agilex™ 5 FPGA E-Series 065B Premium Development Kit ([DK-A5E065BB32AES1](https://www.altera.com/products/devkit/po-3002/agilex-5-fpga-and-soc-e-series-premium-development-kit-es))
+- [2-Port 10G PTP1588 Design](https://github.com/altera-fpga/agilex5-ed-ptp/tree/rel/25.3)
