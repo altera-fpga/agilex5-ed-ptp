@@ -1,34 +1,47 @@
-Altera Agilex™ 5 (SM7+ PDK) Precision Time Protocol System Example Design - Hardware
-Dependency
-Altera Quartus Prime (See Release Notes for the supported version)
-Build Steps
-Compile design and generate configuration (sof) file:
+# Agilex™ 5 25GbE Ethernet System Example Design Build Scripts
 
-The synth folder contains a Makefile and the Quartus Project.The Makefile support various compile options such as:
 
-make compile - runs the compile stage of Quartus
-make synth - runs synthesis stage of Quartus
-make all - runs a full Quartus compile including the Assembler Running make will print out all the options supported
-The Design can be compiled to specificate datarate with or w/o ANLT option using two methods as explaied below.
+# Dependency
 
-Config File Method:
+- Altera&reg; Quartus&reg; Prime Pro software suit (See [Release Notes](../../#Project-Details) for the supported version)
 
-The project Makefile reads src/hw/synth/config.txt to determine the Ethernet data rate for the Ethernet Subsystem IPs. Open config.txt and set the configuration to the desired Ethernet data rate support as shown in the snippet below.
 
-The config text file will have below config for 25GbE;
+# Build Steps
 
-Configuration=25G_NON_ANLT
+ 1. Compile design and generate configuration (sof) file:
+    
+    The synth folder contains a Makefile and the Quartus Project.The Makefile support various compile options such as 
+    - make compile - runs the compile stage of Quartus
+    - make synth   - runs synthesis stage of Quartus
+    - make all     - runs a full Quartus compile including the Assembler
+    Running <make> will print out all the options supported
+    
+    Alternatively, if using the GUI is preferred, the qpf file can be opened in Quartus and compile options selected there.
+    ```
+    cd synth/
+	  make all
+    ```
 
-Command Method:
+# Programming Files Generation Steps <UPDATE BELOW>
 
-cd synth/
+ 1. File link of [`u-boot-spl-dtb.hex`](../sw/artifacts/u-boot-spl-dtb.hex) 
 
-make all CONFIG=25G_NON_ANLT     - Runs a full Quartus compile including the Assembler for 25G_NON_ANLT
+ 2. Generate `top.{core,hps}.rbf` including U-Boot SPL:
 
-Programming Files Generation Steps
-Download u-boot-spl-dtb.hex from sw/artifacts/u-boot-spl-dtb.hex.
+    ```
+    cd synth/
+    quartus_pfg -c -o hps=on -o hps_path=../../sw/artifacts/u-boot-spl-dtb.hex output_files/top.sof output_files/top.rbf
+    ```
+3. Generate QSPI Flash Image file
+   The QSPI image will contain the FPGA configuration data and the HPS FSBL and it can be built using the following command:
+    ``` bash
+    cd $TOP_FOLDER 
+    quartus_pfg -c src/hw/synth/output_files/top.sof \
+    bin/top.jic \
+    -o hps_path=src/sw/artifacts/u-boot-spl-dtb.hex \
+    -o device=MT25QU128 \
+    -o flash_loader=A5ED065AB32AE1V \
+    -o mode=ASX4 \
+    -o hps=1
+    ```
 
-Generate top{core,hps}.rbf including U-Boot SPL:
-
-cd synth/
-quartus_pfg -c -o hps=on -o hps_path=../../sw/artifacts/u-boot-spl-dtb.hex output_files/top.sof output_files/top.rbf
