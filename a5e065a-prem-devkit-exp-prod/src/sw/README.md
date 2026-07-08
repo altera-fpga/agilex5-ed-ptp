@@ -47,10 +47,10 @@ This Design needs 156.25 MHz on OUT2 of Si5518 for the ToD input for better perf
    $ unzip SI5518A_clock_config.zip
    Archive:  SI5518A_clock_config.zip
       creating: SI5518A_clock_config/
-		inflating: Si5518G-Bxxxxx-GM-v0-ISM72E1-Project_TOD156P25MHz_ForceHoldover_0.01ppb.slabtimeproj
-		inflating: Si5518G-Bxxxxx-GM-v0-ISM72E1_TOD156P25MHz_ForceHoldover_0.01ppb-design_report.txt
-		inflating: Si5518G-Bxxxxx-GM-v0-ISM72E1_TOD156P25MHz_ForceHoldover_0.01ppb-prod_fw_pps.boot.bin
-		inflating: Si5518G-Bxxxxx-GM-v0-ISM72E1_TOD156P25MHz_ForceHoldover_0.01ppb-user_config.boot.bin
+		inflating: SI5518A_clock_config/Si5518G-Bxxxxx-GM-v0-ISM72E1-Project_TOD156P25MHz.slabtimeproj
+		inflating: SI5518A_clock_config/Si5518G-Bxxxxx-GM-v0-ISM72E1_TOD156P25MHz-design_report.txt
+		inflating: SI5518A_clock_config/Si5518G-Bxxxxx-GM-v0-ISM72E1_TOD156P25MHz-user_config.boot.bin
+		inflating: SI5518A_clock_config/Si5518G-Bxxxxx-GM-v0-ISM72E1_TOD156P25MHzprod_fw_pps.boot.bin
 	```
 - Program the 156.25MHz clock profile using above extracted files by importing them into SI5518 clock controller GUI.
 - You can save the imported clock settings to flash if you want the board to load the user settings on power-up next time. To do so, follow these steps:
