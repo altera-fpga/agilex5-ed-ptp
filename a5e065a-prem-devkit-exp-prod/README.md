@@ -25,7 +25,7 @@ agilex5-ed-ptp
 - **Quartus Version**: 26.1
 - **Development Kit**: Agilex&trade; 5 FPGA E-Series 065A Premium Development Kit([DK-A5E065AB32AEA](https://www.altera.com/products/devkit/po-3285/agilex-5-fpga-e-series-065a-premium-development-kit))
 - **Device Part**: A5ED065AB32AE1V
-- **Release TAG** : SED-2X10GE_PTP-a5e065a-pdk-Q26.1-Rel1.1
+- **Release TAG** : SED-2X25GE_PTP-a5e065a-pdk-Q26.1-Rel1.1
 
 ## Getting Started
 
