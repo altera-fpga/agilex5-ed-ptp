@@ -34,7 +34,7 @@ Building the design is easy with the scripts provided in the repo. Clone the rep
 ``` bash
 git clone https://github.com/altera-fpga/agilex5-ed-ptp.git
 cd agilex5-ed-ptp
-git checkout <Release TAG>
+git checkout SED-2X10GE_PTP-a5e065b-pdk-Q26.1-Rel1.1
 cd a5e065b-prem-devkit-exp-prod
 export TOP_FOLDER=`pwd`
 mkdir bin

@@ -47,7 +47,7 @@ Building the design is easy with the scripts provided in the repo. Clone the rep
 ``` bash
 git clone https://github.com/altera-fpga/agilex5-ed-ptp.git
 cd agilex5-ed-ptp
-git checkout main
+git checkout rel/26.1
 ```
 
 Follow the below links to compile, build and test the Design solution for intended speeds.
