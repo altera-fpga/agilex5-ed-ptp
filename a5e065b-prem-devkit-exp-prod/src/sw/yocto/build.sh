@@ -180,6 +180,12 @@ build_setup() {
 			"$GIT_PREFIX/poky"
 	popd > /dev/null
 
+	pushd $WORKSPACE > /dev/null
+		if [[ "$MACHINE" == "agilex5"* && -n "${SOLUTION}" ]]; then
+			sed -i 's/kernel.itb/kernel_sed.itb/' meta-intel-fpga-refdes/conf/machine/${MACHINE}-gsrd.conf
+		fi
+	popd > /dev/null
+
 #------------------------------------------------------------------------------------------#
 # Initialize Yocto build environment setup
 #------------------------------------------------------------------------------------------#
@@ -500,6 +506,14 @@ package() {
 			mkdir -p $STAGING_FOLDER/esdk
 			cp -vL poky*.sh $STAGING_FOLDER/esdk/.
 		popd > /dev/null
+	fi
+
+	if [[ "$MACHINE" == "agilex"* ]] ; then
+		if [[ -n "${SOLUTION}" ]]; then
+			pushd $WORKSPACE > /dev/null
+			git -C meta-intel-fpga-refdes restore conf/machine/${MACHINE}-gsrd.conf
+			popd
+		fi
 	fi
 
 	echo -e "\n[INFO] Completed: Binaries are store in $WORKSPACE/$MACHINE-$IMAGE-images"
