@@ -20,8 +20,8 @@ The System Example Design support following design configurations on Altera Deve
   
 |SL No| Design configuration                        | Data-rate   | Development Kit Supported        | Device Family |  Device Part | Documentation |
 |-----|---------------------------------------------|----------|:------------------------:|:-----------:|:---------------:|:-----:|
-|1.   |2-port 10GbE with PTP1588                    | 10GbE    | [DK-A5E065BB32AEA](https://www.altera.com/products/devkit/po-3284/agilex-5-fpga-e-series-065b-premium-development-kit)         | Agilex&trade; 5 E-Series( Group B) | A5ED065BB32AE4S | [10GbE PTP1588 on Agilex 5E](https://altera-fpga.github.io/rel-26.1/embedded-designs/agilex-5/e-series/premium-065b/ptp1588/agx5e-ptp-2p10g/ug-agx5e-ptp-2p10g.md)|
-|2.   |2-port 25GbE with PTP1588                    | 25GbE    | [DK-A5E065AB32AEA](https://www.altera.com/products/devkit/po-3285/agilex-5-fpga-e-series-065a-premium-development-kit)         | Agilex&trade; 5 E-Series( Group A) | A5ED065AB32AE1V | [25GbE PTP1588 on Agilex 5E](https://altera-fpga.github.io/rel-26.1/embedded-designs/agilex-5/e-series/premium-065a/ptp1588/agx5e-ptp-2p/ug-agx5e-ptp-2p.md)|
+|1.   |2-port 10GbE with PTP1588                    | 10GbE    | [DK-A5E065BB32AEA](https://www.altera.com/products/devkit/po-3284/agilex-5-fpga-e-series-065b-premium-development-kit)         | Agilex&trade; 5 E-Series( Group B) | A5ED065BB32AE4S | [10GbE PTP1588 on Agilex 5E](https://altera-fpga.github.io/rel-26.1/embedded-designs/agilex-5/e-series/premium-065b/ptp1588/agx5e-ptp-2p10g/ug-agx5e-ptp-2p10g/)|
+|2.   |2-port 25GbE with PTP1588                    | 25GbE    | [DK-A5E065AB32AEA](https://www.altera.com/products/devkit/po-3285/agilex-5-fpga-e-series-065a-premium-development-kit)         | Agilex&trade; 5 E-Series( Group A) | A5ED065AB32AE1V | [25GbE PTP1588 on Agilex 5E](https://altera-fpga.github.io/rel-26.1/embedded-designs/agilex-5/e-series/premium-065a/ptp1588/agx5e-ptp-2p/ug-agx5e-ptp-2p/)|
 
 ## Repository Structure
 
